@@ -261,7 +261,7 @@
     const TMDB_KEY = 'b6083b855479a79fd9acdb0a2789f126';
     let currentID = null;
 
-    // --- 1. CONFIGURACIÓN DEL CATÁLOGO ---
+    // --- 1. CONFIGURACIÓN DEL CATÁLOGO (ORIGINAL COMPLETO) ---
     const CATALOGO = [
         { id: 1522377, link: "https://hgplaycdn.com/e/27tc341hgd98", categoria: "Estreno" },
         { id: 1180831, link: "https://hgplaycdn.com/e/27tc341hgd98", categoria: "Estreno" },
@@ -301,22 +301,38 @@
             security.init();
             favs.render();
             ui.initTelemetry();
-
-            // 1. CORRECCIÓN BUSCADOR "EXPLORAR"
             const sInput = document.getElementById('search-input');
             if(sInput) sInput.addEventListener('input', (e) => this.search(e.target.value));
+            
+            // ESCUDO 1DM: Interceptar clics en toda la ventana
+            window.addEventListener('click', (e) => {
+                if(document.getElementById('m-player-view') && !document.getElementById('m-player-view').classList.contains('hidden')) {
+                    // Si el reproductor está activo, detenemos cualquier propagación que no sea el iframe mismo
+                    if(e.target.tagName !== 'IFRAME') {
+                        e.stopPropagation();
+                    }
+                }
+            }, true);
         },
-        // 2. CORRECCIÓN CIERRE DE SESIÓN
         reset() {
             if(confirm("¿Cerrar sesión completa?")) {
                 localStorage.clear();
                 window.location.reload();
             }
         },
+        // --- FIX SCROLL INDEPENDIENTE ---
         nav(id, el) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.view').forEach(v => {
+                v.classList.remove('active');
+                v.style.display = 'none'; 
+            });
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.getElementById(`v-${id}`).classList.add('active');
+            const target = document.getElementById(`v-${id}`);
+            if(target) {
+                target.classList.add('active');
+                target.style.display = 'block';
+                window.scrollTo(0, 0); 
+            }
             if(el) el.classList.add('active');
         },
         async renderHome() {
@@ -340,29 +356,17 @@
                 fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()),
                 fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${TMDB_KEY}`).then(r => r.json())
             ]);
-            
             currentID = id;
             document.getElementById('hero').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
             document.getElementById('hero-title').innerText = d.title;
             document.getElementById('hero-sinopsis').innerText = d.overview;
-            
-            if(document.getElementById('hero-meta')) {
-                document.getElementById('hero-meta').innerText = `${d.release_date.split('-')[0]} • ${d.runtime} min • ⭐ ${d.vote_average.toFixed(1)}`;
-            }
-            if(document.getElementById('hero-dir')) {
-                document.getElementById('hero-dir').innerText = c.crew.find(x => x.job === 'Director')?.name || 'N/A';
-            }
-            if(document.getElementById('hero-studio')) {
-                document.getElementById('hero-studio').innerText = d.production_companies[0]?.name || 'N/A';
-            }
-            if(document.getElementById('hero-budget')) {
-                document.getElementById('hero-budget').innerText = d.budget > 0 ? `$${(d.budget/1000000).toFixed(1)}M` : 'N/A';
-            }
-
+            if(document.getElementById('hero-meta')) document.getElementById('hero-meta').innerText = `${d.release_date.split('-')[0]} • ${d.runtime} min • ⭐ ${d.vote_average.toFixed(1)}`;
+            if(document.getElementById('hero-dir')) document.getElementById('hero-dir').innerText = c.crew.find(x => x.job === 'Director')?.name || 'N/A';
+            if(document.getElementById('hero-studio')) document.getElementById('hero-studio').innerText = d.production_companies[0]?.name || 'N/A';
+            if(document.getElementById('hero-budget')) document.getElementById('hero-budget').innerText = d.budget > 0 ? `$${(d.budget/1000000).toFixed(1)}M` : 'N/A';
             document.getElementById('hero-play').onclick = () => app.openModal(id);
             favs.updateIcon('hero-fav-icon', id);
         },
-        // FUNCIÓN BUSCADOR (REPETIDA PARA EXPLORAR)
         async search(q) {
             const grid = document.getElementById('search-grid');
             if(!grid || q.length < 3) { if(grid) grid.innerHTML = ""; return; }
@@ -373,29 +377,19 @@
             const mod = document.getElementById('m-movie');
             mod.style.display = 'block';
             document.body.style.overflow = 'hidden';
-
             const [d, c] = await Promise.all([
                 fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()),
                 fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${TMDB_KEY}`).then(r => r.json())
             ]);
-
             document.getElementById('m-banner').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
             document.getElementById('m-title').innerText = d.title;
             document.getElementById('m-plot').innerText = d.overview;
             document.getElementById('m-meta').innerText = `${d.release_date.split('-')[0]} • ${d.runtime} min • ⭐ ${d.vote_average.toFixed(1)}`;
-            
             document.getElementById('m-dir').innerText = c.crew.find(x => x.job === 'Director')?.name || 'N/A';
             document.getElementById('m-studio').innerText = d.production_companies[0]?.name || 'N/A';
             document.getElementById('m-budget').innerText = d.budget > 0 ? `$${(d.budget/1000000).toFixed(1)}M` : 'N/A';
             document.getElementById('m-revenue').innerText = d.revenue > 0 ? `$${(d.revenue/1000000).toFixed(1)}M` : 'N/A';
-
-            document.getElementById('m-cast').innerHTML = c.cast.slice(0, 12).map(a => `
-                <div class="min-w-[85px] text-center">
-                    <img src="${a.profile_path ? 'https://image.tmdb.org/t/p/w200'+a.profile_path : 'https://via.placeholder.com/200x200'}" class="w-16 h-16 rounded-full mx-auto object-cover border-2 border-white/5 mb-2">
-                    <p class="text-[8px] font-black uppercase text-gray-400 leading-tight">${a.name}</p>
-                </div>
-            `).join('');
-
+            document.getElementById('m-cast').innerHTML = c.cast.slice(0, 12).map(a => `<div class="min-w-[85px] text-center"><img src="${a.profile_path ? 'https://image.tmdb.org/t/p/w200'+a.profile_path : 'https://via.placeholder.com/200x200'}" class="w-16 h-16 rounded-full mx-auto object-cover border-2 border-white/5 mb-2"><p class="text-[8px] font-black uppercase text-gray-400 leading-tight">${a.name}</p></div>`).join('');
             const btn = document.getElementById('m-play-btn');
             if(CONTENT_LINKS[id]) {
                 btn.innerText = "REPRODUCIR";
@@ -404,16 +398,36 @@
                 btn.innerText = "SOLICITAR";
                 btn.onclick = () => window.location.href = `mailto:admin@ghostflux.com?subject=Solicitud: ${d.title}`;
             }
-
             favs.updateIcon('m-fav-btn', id, true);
             document.getElementById('m-fav-btn').onclick = () => { favs.toggle(id); favs.updateIcon('m-fav-btn', id, true); };
         },
+        // --- MOTOR DE BLOQUEO NIVEL 1DM ---
         openPlayer(url) {
             document.getElementById('m-info-view').classList.add('hidden');
             document.getElementById('m-player-view').classList.remove('hidden');
-            document.getElementById('vEngine').src = url;
+            const frame = document.getElementById('vEngine');
+            
+            // Desactivar funciones de apertura de pestañas ANTES de cargar el link
+            window.open = function() { return { focus: function(){}, close: function(){} }; };
+            
+            frame.src = url;
+
+            // Escudo de Foco Agresivo (Impide que los Pop-unders se lleven el navegador)
+            this.oneDMGuard = setInterval(() => {
+                if (document.activeElement.tagName === "IFRAME") {
+                    // Si el iframe intenta redirigir el Top Window, lo bloqueamos
+                    window.onbeforeunload = function() { return "Bloqueando redirección de anuncio..."; };
+                }
+            }, 100);
+            
+            // Bloquear clics fantasmas alrededor del reproductor
+            document.getElementById('m-player-view').onmousedown = (e) => {
+               if(e.target.tagName !== 'IFRAME') e.preventDefault();
+            };
         },
         closePlayer() {
+            clearInterval(this.oneDMGuard);
+            window.onbeforeunload = null;
             document.getElementById('m-info-view').classList.remove('hidden');
             document.getElementById('m-player-view').classList.add('hidden');
             document.getElementById('vEngine').src = "";
@@ -437,11 +451,8 @@
                 if(timerEl) timerEl.innerText = `${h}:${m}:${s}`;
             };
             setInterval(clock, 1000); clock();
-
-            // 3. CORRECCIÓN ÚLTIMO INICIO (MOSTRAR)
             const last = localStorage.getItem('ghost_last_login');
             if(last && document.getElementById('sys-last')) document.getElementById('sys-last').innerText = last;
-
             fetch('https://ipapi.co/json/').then(r => r.json()).then(d => {
                 const el = document.getElementById('sys-country');
                 if(el) el.innerText = `${d.city}, ${d.country_name}`;
@@ -484,11 +495,10 @@
             const p = prompt("Nuevo PIN (4 dígitos):");
             if(p && p.length === 4) { localStorage.setItem('ghost_pin', p); this.pin = p; alert("PIN Activo"); }
         },
-        // CORRECCIÓN ÚLTIMO INICIO (GUARDAR AL ENTRAR)
         unlock() {
             if(document.getElementById('pin-field').value === this.pin) {
                 const now = new Date();
-                const dateStr = now.toLocaleDateString() + " " + now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                const dateStr = now.toLocaleDateString() + " " + now.toLocaleString([], {hour:'2-digit', minute:'2-digit'});
                 localStorage.setItem('ghost_last_login', dateStr);
                 document.getElementById('lock-screen').classList.replace('flex', 'hidden');
                 igniteEngine();
@@ -526,19 +536,14 @@
         }
     };
 
-    window.open = function() { return null; };
     function igniteEngine() {
         const shield = document.getElementById('ghostShield');
         if(!shield) return;
         shield.style.pointerEvents = 'none'; shield.style.opacity = '0';
-        let burst = 0;
-        const focusBurst = setInterval(() => { window.focus(); burst++; if(burst > 80) clearInterval(focusBurst); }, 15);
-        setInterval(() => { if (document.activeElement !== document.body) { window.focus(); } }, 2000);
         setTimeout(() => { shield.remove(); }, 600);
     }
-    window.onbeforeunload = function() { return false; };
 
     app.init();
 </script>
 </body>
-</html>
+    </html>
