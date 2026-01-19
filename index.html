@@ -261,7 +261,27 @@
     const TMDB_KEY = 'b6083b855479a79fd9acdb0a2789f126';
     let currentID = null;
 
-    // --- 1. CONFIGURACIÓN DEL CATÁLOGO (ORIGINAL COMPLETO) ---
+    // --- MOTOR DE INTERCEPCIÓN 1DM (SIN SANDBOX) ---
+    (function() {
+        const _open = window.open;
+        window.open = function(url, target, features) {
+            // En lugar de abrir, disparamos nuestra alerta
+            app.showSecurityShield(url);
+            // Devolvemos un objeto "proxy" para que el script del anuncio no de error
+            return {
+                focus: () => {},
+                close: () => {},
+                blur: () => {}
+            };
+        };
+
+        // Bloquear intentos de cambiar la URL de la ventana principal (Top-level navigation)
+        window.onbeforeunload = function() {
+            // Solo si el usuario no ha interactuado con la app genuinamente
+            return "Cineflux detectó un intento de redirección. ¿Deseas permanecer aquí?";
+        };
+    })();
+
     const CATALOGO = [
         { id: 1522377, link: "https://hgplaycdn.com/e/27tc341hgd98", categoria: "Estreno" },
         { id: 1180831, link: "https://hgplaycdn.com/e/27tc341hgd98", categoria: "Estreno" },
@@ -303,54 +323,50 @@
             ui.initTelemetry();
             const sInput = document.getElementById('search-input');
             if(sInput) sInput.addEventListener('input', (e) => this.search(e.target.value));
-            
-            // ESCUDO 1DM: Interceptar clics en toda la ventana
-            window.addEventListener('click', (e) => {
-                if(document.getElementById('m-player-view') && !document.getElementById('m-player-view').classList.contains('hidden')) {
-                    // Si el reproductor está activo, detenemos cualquier propagación que no sea el iframe mismo
-                    if(e.target.tagName !== 'IFRAME') {
-                        e.stopPropagation();
-                    }
-                }
-            }, true);
         },
+
+        showSecurityShield(url) {
+            const modal = document.getElementById('shield-alert');
+            if(modal) {
+                modal.style.display = 'flex';
+                document.getElementById('ad-link').innerText = url.substring(0, 40) + "...";
+            }
+        },
+
         reset() {
-            if(confirm("¿Cerrar sesión completa?")) {
+            if(confirm("¿Eliminar todos los datos de sesión?")) {
                 localStorage.clear();
                 window.location.reload();
             }
         },
-        // --- FIX SCROLL INDEPENDIENTE ---
+
         nav(id, el) {
-            document.querySelectorAll('.view').forEach(v => {
-                v.classList.remove('active');
-                v.style.display = 'none'; 
-            });
+            document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             const target = document.getElementById(`v-${id}`);
-            if(target) {
-                target.classList.add('active');
-                target.style.display = 'block';
-                window.scrollTo(0, 0); 
-            }
+            if(target) target.style.display = 'block';
             if(el) el.classList.add('active');
+            window.scrollTo(0, 0);
         },
+
         async renderHome() {
             const container = document.getElementById('dynamic-content');
             if(!container) return;
             container.innerHTML = "";
             for (const [title, ids] of Object.entries(DATABASE)) {
                 const row = document.createElement('div');
+                row.className = "mb-8";
                 row.innerHTML = `<h2 class="section-title">${title}</h2><div id="row-${title.replace(/\s/g,'')}" class="h-scroll"></div>`;
                 container.appendChild(row);
                 const el = document.getElementById(`row-${title.replace(/\s/g,'')}`);
                 for (const id of ids) {
-                    const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}`).then(r => r.json());
+                    const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json());
                     el.innerHTML += `<div class="card" onclick="app.openModal(${id})"><img src="https://image.tmdb.org/t/p/w500${m.poster_path}"></div>`;
                 }
             }
             this.setHero(CATALOGO[0].id);
         },
+
         async setHero(id) {
             const [d, c] = await Promise.all([
                 fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()),
@@ -360,19 +376,21 @@
             document.getElementById('hero').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
             document.getElementById('hero-title').innerText = d.title;
             document.getElementById('hero-sinopsis').innerText = d.overview;
-            if(document.getElementById('hero-meta')) document.getElementById('hero-meta').innerText = `${d.release_date.split('-')[0]} • ${d.runtime} min • ⭐ ${d.vote_average.toFixed(1)}`;
-            if(document.getElementById('hero-dir')) document.getElementById('hero-dir').innerText = c.crew.find(x => x.job === 'Director')?.name || 'N/A';
-            if(document.getElementById('hero-studio')) document.getElementById('hero-studio').innerText = d.production_companies[0]?.name || 'N/A';
-            if(document.getElementById('hero-budget')) document.getElementById('hero-budget').innerText = d.budget > 0 ? `$${(d.budget/1000000).toFixed(1)}M` : 'N/A';
+            document.getElementById('hero-meta').innerText = `${d.release_date.split('-')[0]} • ${d.runtime} min • ⭐ ${d.vote_average.toFixed(1)}`;
+            document.getElementById('hero-dir').innerText = c.crew.find(x => x.job === 'Director')?.name || 'N/A';
+            document.getElementById('hero-studio').innerText = d.production_companies[0]?.name || 'N/A';
+            document.getElementById('hero-budget').innerText = d.budget > 0 ? `$${(d.budget/1000000).toFixed(1)}M` : 'N/A';
             document.getElementById('hero-play').onclick = () => app.openModal(id);
             favs.updateIcon('hero-fav-icon', id);
         },
+
         async search(q) {
             const grid = document.getElementById('search-grid');
             if(!grid || q.length < 3) { if(grid) grid.innerHTML = ""; return; }
             const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${q}&language=es-MX`).then(res => res.json());
             grid.innerHTML = r.results.map(m => `<div class="card" onclick="app.openModal(${m.id})"><img src="https://image.tmdb.org/t/p/w300${m.poster_path}"></div>`).join('');
         },
+
         async openModal(id) {
             const mod = document.getElementById('m-movie');
             mod.style.display = 'block';
@@ -381,6 +399,7 @@
                 fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()),
                 fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${TMDB_KEY}`).then(r => r.json())
             ]);
+
             document.getElementById('m-banner').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
             document.getElementById('m-title').innerText = d.title;
             document.getElementById('m-plot').innerText = d.overview;
@@ -389,7 +408,8 @@
             document.getElementById('m-studio').innerText = d.production_companies[0]?.name || 'N/A';
             document.getElementById('m-budget').innerText = d.budget > 0 ? `$${(d.budget/1000000).toFixed(1)}M` : 'N/A';
             document.getElementById('m-revenue').innerText = d.revenue > 0 ? `$${(d.revenue/1000000).toFixed(1)}M` : 'N/A';
-            document.getElementById('m-cast').innerHTML = c.cast.slice(0, 12).map(a => `<div class="min-w-[85px] text-center"><img src="${a.profile_path ? 'https://image.tmdb.org/t/p/w200'+a.profile_path : 'https://via.placeholder.com/200x200'}" class="w-16 h-16 rounded-full mx-auto object-cover border-2 border-white/5 mb-2"><p class="text-[8px] font-black uppercase text-gray-400 leading-tight">${a.name}</p></div>`).join('');
+            document.getElementById('m-cast').innerHTML = c.cast.slice(0, 12).map(a => `<div class="cast-item"><img src="${a.profile_path ? 'https://image.tmdb.org/t/p/w200'+a.profile_path : 'https://via.placeholder.com/200x200'}"><p>${a.name}</p></div>`).join('');
+            
             const btn = document.getElementById('m-play-btn');
             if(CONTENT_LINKS[id]) {
                 btn.innerText = "REPRODUCIR";
@@ -399,39 +419,30 @@
                 btn.onclick = () => window.location.href = `mailto:admin@ghostflux.com?subject=Solicitud: ${d.title}`;
             }
             favs.updateIcon('m-fav-btn', id, true);
-            document.getElementById('m-fav-btn').onclick = () => { favs.toggle(id); favs.updateIcon('m-fav-btn', id, true); };
         },
-        // --- MOTOR DE BLOQUEO NIVEL 1DM ---
+
         openPlayer(url) {
             document.getElementById('m-info-view').classList.add('hidden');
             document.getElementById('m-player-view').classList.remove('hidden');
             const frame = document.getElementById('vEngine');
-            
-            // Desactivar funciones de apertura de pestañas ANTES de cargar el link
-            window.open = function() { return { focus: function(){}, close: function(){} }; };
-            
+            frame.removeAttribute('sandbox'); // SIN SANDBOX PARA NO ROMPER EL EMBED
             frame.src = url;
-
-            // Escudo de Foco Agresivo (Impide que los Pop-unders se lleven el navegador)
-            this.oneDMGuard = setInterval(() => {
-                if (document.activeElement.tagName === "IFRAME") {
-                    // Si el iframe intenta redirigir el Top Window, lo bloqueamos
-                    window.onbeforeunload = function() { return "Bloqueando redirección de anuncio..."; };
-                }
-            }, 100);
             
-            // Bloquear clics fantasmas alrededor del reproductor
-            document.getElementById('m-player-view').onmousedown = (e) => {
-               if(e.target.tagName !== 'IFRAME') e.preventDefault();
-            };
+            // Monitor de actividad por si el iframe intenta forzar un clic
+            this.securityInterval = setInterval(() => {
+                if (document.activeElement.tagName === "IFRAME") {
+                    window.focus(); 
+                }
+            }, 300);
         },
+
         closePlayer() {
-            clearInterval(this.oneDMGuard);
-            window.onbeforeunload = null;
+            clearInterval(this.securityInterval);
             document.getElementById('m-info-view').classList.remove('hidden');
             document.getElementById('m-player-view').classList.add('hidden');
             document.getElementById('vEngine').src = "";
         },
+
         closeModal() {
             this.closePlayer();
             document.getElementById('m-movie').style.display = 'none';
@@ -441,49 +452,34 @@
 
     const ui = {
         initTelemetry() {
-            const clock = () => {
+            setInterval(() => {
                 const now = new Date();
                 const timeEl = document.getElementById('sys-time');
                 if(timeEl) timeEl.innerText = now.toLocaleTimeString();
-                const uptime = Math.floor((Date.now() - performance.timing.navigationStart) / 1000);
-                const h = Math.floor(uptime/3600).toString().padStart(2,'0'), m = Math.floor((uptime%3600)/60).toString().padStart(2,'0'), s = (uptime%60).toString().padStart(2,'0');
-                const timerEl = document.getElementById('sys-timer');
-                if(timerEl) timerEl.innerText = `${h}:${m}:${s}`;
-            };
-            setInterval(clock, 1000); clock();
-            const last = localStorage.getItem('ghost_last_login');
-            if(last && document.getElementById('sys-last')) document.getElementById('sys-last').innerText = last;
+            }, 1000);
             fetch('https://ipapi.co/json/').then(r => r.json()).then(d => {
                 const el = document.getElementById('sys-country');
                 if(el) el.innerText = `${d.city}, ${d.country_name}`;
-            }).catch(() => { if(document.getElementById('sys-country')) document.getElementById('sys-country').innerText = "Privado"; });
-        },
-        setTheme(t) { document.body.className = t === 'dark' ? '' : t + '-mode'; },
-        showLegal(type) {
-            document.getElementById('modal-legal').style.display = 'block';
-            const texts = { privacidad: ["Privacidad", "Datos locales."], dmca: ["DMCA", "Indexador."], politica: ["Uso", "Pruebas."] };
-            document.getElementById('legal-title').innerText = texts[type][0];
-            document.getElementById('legal-body').innerText = texts[type][1];
-        },
-        closeLegal() { document.getElementById('modal-legal').style.display = 'none'; }
+            }).catch(() => {});
+        }
     };
 
     const profile = {
-        data: { name: "Bienvenido", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ghost" },
+        data: { name: "Usuario", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ghost" },
         init() {
             const saved = localStorage.getItem('ghost_user');
             if(saved) this.data = JSON.parse(saved);
-            const input = document.getElementById('p-name-input');
-            if(input) {
-                input.value = this.data.name;
-                input.oninput = (e) => { this.data.name = e.target.value || "Bienvenido"; localStorage.setItem('ghost_user', JSON.stringify(this.data)); };
-            }
+            document.getElementById('p-name-input').value = this.data.name;
             document.getElementById('p-img').src = this.data.img;
             document.getElementById('nav-pfp').src = this.data.img;
         },
         changePhoto(e) {
             const reader = new FileReader();
-            reader.onload = () => { this.data.img = reader.result; localStorage.setItem('ghost_user', JSON.stringify(this.data)); this.init(); };
+            reader.onload = () => {
+                this.data.img = reader.result;
+                localStorage.setItem('ghost_user', JSON.stringify(this.data));
+                this.init();
+            };
             reader.readAsDataURL(e.target.files[0]);
         }
     };
@@ -497,13 +493,9 @@
         },
         unlock() {
             if(document.getElementById('pin-field').value === this.pin) {
-                const now = new Date();
-                const dateStr = now.toLocaleDateString() + " " + now.toLocaleString([], {hour:'2-digit', minute:'2-digit'});
-                localStorage.setItem('ghost_last_login', dateStr);
                 document.getElementById('lock-screen').classList.replace('flex', 'hidden');
                 igniteEngine();
-            }
-            else { alert("PIN Incorrecto"); document.getElementById('pin-field').value = ""; }
+            } else { alert("PIN Incorrecto"); }
         }
     };
 
@@ -520,14 +512,13 @@
             const el = document.getElementById(elId);
             if(!el) return;
             const icon = this.list.includes(id) ? 'check' : 'add';
-            if(isModal) el.innerHTML = `<span class="material-symbols-rounded">${icon}</span>`;
-            else el.innerText = icon;
+            el.innerHTML = `<span class="material-symbols-rounded">${icon}</span>`;
         },
         async render() {
             const cont = document.getElementById('fav-container');
             if(!cont) return;
-            if(this.list.length === 0) { document.getElementById('fav-row').classList.add('hidden'); return; }
-            document.getElementById('fav-row').classList.remove('hidden');
+            if(this.list.length === 0) { document.getElementById('fav-row').style.display = 'none'; return; }
+            document.getElementById('fav-row').style.display = 'block';
             cont.innerHTML = '';
             for(const id of this.list) {
                 const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}`).then(r => r.json());
@@ -536,14 +527,9 @@
         }
     };
 
-    function igniteEngine() {
-        const shield = document.getElementById('ghostShield');
-        if(!shield) return;
-        shield.style.pointerEvents = 'none'; shield.style.opacity = '0';
-        setTimeout(() => { shield.remove(); }, 600);
-    }
+    function igniteEngine() { document.getElementById('ghostShield').remove(); }
 
     app.init();
 </script>
 </body>
-    </html>
+</html>
