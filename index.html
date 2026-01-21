@@ -260,27 +260,8 @@
     <script>
     const TMDB_KEY = 'b6083b855479a79fd9acdb0a2789f126';
     let currentID = null;
-
-    // --- MOTOR DE INTERCEPCIÓN 1DM (SIN SANDBOX) ---
-    (function() {
-        const _open = window.open;
-        window.open = function(url, target, features) {
-            // En lugar de abrir, disparamos nuestra alerta
-            app.showSecurityShield(url);
-            // Devolvemos un objeto "proxy" para que el script del anuncio no de error
-            return {
-                focus: () => {},
-                close: () => {},
-                blur: () => {}
-            };
-        };
-
-        // Bloquear intentos de cambiar la URL de la ventana principal (Top-level navigation)
-        window.onbeforeunload = function() {
-            // Solo si el usuario no ha interactuado con la app genuinamente
-            return "Cineflux detectó un intento de redirección. ¿Deseas permanecer aquí?";
-        };
-    })();
+    // Capa 1: Memoria de Scroll
+    let scrollMemory = {}; 
 
     const CATALOGO = [
         { id: 1522377, link: "https://hgplaycdn.com/e/27tc341hgd98", categoria: "Estreno" },
@@ -321,80 +302,81 @@
             security.init();
             favs.render();
             ui.initTelemetry();
+            ui.injectLayer4(); // Activar escudo anti-ads
+
             const sInput = document.getElementById('search-input');
             if(sInput) sInput.addEventListener('input', (e) => this.search(e.target.value));
         },
-
-        showSecurityShield(url) {
-            const modal = document.getElementById('shield-alert');
-            if(modal) {
-                modal.style.display = 'flex';
-                document.getElementById('ad-link').innerText = url.substring(0, 40) + "...";
-            }
-        },
-
         reset() {
-            if(confirm("¿Eliminar todos los datos de sesión?")) {
+            if(confirm("¿Cerrar sesión completa?")) {
                 localStorage.clear();
                 window.location.reload();
             }
         },
-
+        // --- NAVEGACIÓN CON SCROLL MEMORY ---
         nav(id, el) {
-            document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            const target = document.getElementById(`v-${id}`);
-            if(target) target.style.display = 'block';
-            if(el) el.classList.add('active');
-            window.scrollTo(0, 0);
-        },
+            const currentView = document.querySelector('.view.active');
+            if (currentView) {
+                scrollMemory[currentView.id] = currentView.scrollTop;
+            }
 
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            
+            const target = document.getElementById(`v-${id}`);
+            target.classList.add('active');
+            if (el) el.classList.add('active');
+
+            if (scrollMemory[`v-${id}`]) {
+                target.scrollTop = scrollMemory[`v-${id}`];
+            }
+        },
         async renderHome() {
             const container = document.getElementById('dynamic-content');
             if(!container) return;
             container.innerHTML = "";
             for (const [title, ids] of Object.entries(DATABASE)) {
                 const row = document.createElement('div');
-                row.className = "mb-8";
                 row.innerHTML = `<h2 class="section-title">${title}</h2><div id="row-${title.replace(/\s/g,'')}" class="h-scroll"></div>`;
                 container.appendChild(row);
                 const el = document.getElementById(`row-${title.replace(/\s/g,'')}`);
                 for (const id of ids) {
-                    const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json());
-                    el.innerHTML += `<div class="card" onclick="app.openModal(${id})"><img src="https://image.tmdb.org/t/p/w500${m.poster_path}"></div>`;
+                    const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}`).then(r => r.json());
+                    if(m.poster_path) {
+                        el.innerHTML += `<div class="card" onclick="app.openModal(${id})"><img src="https://image.tmdb.org/t/p/w500${m.poster_path}"></div>`;
+                    }
                 }
             }
             this.setHero(CATALOGO[0].id);
         },
-
         async setHero(id) {
             const [d, c] = await Promise.all([
                 fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()),
                 fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${TMDB_KEY}`).then(r => r.json())
             ]);
+            
             currentID = id;
             document.getElementById('hero').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
             document.getElementById('hero-title').innerText = d.title;
             document.getElementById('hero-sinopsis').innerText = d.overview;
-            document.getElementById('hero-meta').innerText = `${d.release_date.split('-')[0]} • ${d.runtime} min • ⭐ ${d.vote_average.toFixed(1)}`;
-            document.getElementById('hero-dir').innerText = c.crew.find(x => x.job === 'Director')?.name || 'N/A';
-            document.getElementById('hero-studio').innerText = d.production_companies[0]?.name || 'N/A';
-            document.getElementById('hero-budget').innerText = d.budget > 0 ? `$${(d.budget/1000000).toFixed(1)}M` : 'N/A';
+            
+            if(document.getElementById('hero-meta')) {
+                document.getElementById('hero-meta').innerText = `${d.release_date.split('-')[0]} • ${d.runtime} min • ⭐ ${d.vote_average.toFixed(1)}`;
+            }
             document.getElementById('hero-play').onclick = () => app.openModal(id);
             favs.updateIcon('hero-fav-icon', id);
         },
-
         async search(q) {
             const grid = document.getElementById('search-grid');
             if(!grid || q.length < 3) { if(grid) grid.innerHTML = ""; return; }
             const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${q}&language=es-MX`).then(res => res.json());
             grid.innerHTML = r.results.map(m => `<div class="card" onclick="app.openModal(${m.id})"><img src="https://image.tmdb.org/t/p/w300${m.poster_path}"></div>`).join('');
         },
-
         async openModal(id) {
             const mod = document.getElementById('m-movie');
             mod.style.display = 'block';
             document.body.style.overflow = 'hidden';
+
             const [d, c] = await Promise.all([
                 fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()),
                 fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${TMDB_KEY}`).then(r => r.json())
@@ -404,12 +386,14 @@
             document.getElementById('m-title').innerText = d.title;
             document.getElementById('m-plot').innerText = d.overview;
             document.getElementById('m-meta').innerText = `${d.release_date.split('-')[0]} • ${d.runtime} min • ⭐ ${d.vote_average.toFixed(1)}`;
-            document.getElementById('m-dir').innerText = c.crew.find(x => x.job === 'Director')?.name || 'N/A';
-            document.getElementById('m-studio').innerText = d.production_companies[0]?.name || 'N/A';
-            document.getElementById('m-budget').innerText = d.budget > 0 ? `$${(d.budget/1000000).toFixed(1)}M` : 'N/A';
-            document.getElementById('m-revenue').innerText = d.revenue > 0 ? `$${(d.revenue/1000000).toFixed(1)}M` : 'N/A';
-            document.getElementById('m-cast').innerHTML = c.cast.slice(0, 12).map(a => `<div class="cast-item"><img src="${a.profile_path ? 'https://image.tmdb.org/t/p/w200'+a.profile_path : 'https://via.placeholder.com/200x200'}"><p>${a.name}</p></div>`).join('');
             
+            document.getElementById('m-cast').innerHTML = c.cast.slice(0, 12).map(a => `
+                <div class="min-w-[85px] text-center">
+                    <img src="${a.profile_path ? 'https://image.tmdb.org/t/p/w200'+a.profile_path : 'https://via.placeholder.com/200x200'}" class="w-16 h-16 rounded-full mx-auto object-cover border-2 border-white/5 mb-2">
+                    <p class="text-[8px] font-black uppercase text-gray-400 leading-tight">${a.name}</p>
+                </div>
+            `).join('');
+
             const btn = document.getElementById('m-play-btn');
             if(CONTENT_LINKS[id]) {
                 btn.innerText = "REPRODUCIR";
@@ -418,31 +402,44 @@
                 btn.innerText = "SOLICITAR";
                 btn.onclick = () => window.location.href = `mailto:admin@ghostflux.com?subject=Solicitud: ${d.title}`;
             }
-            favs.updateIcon('m-fav-btn', id, true);
-        },
 
+            favs.updateIcon('m-fav-btn', id, true);
+            document.getElementById('m-fav-btn').onclick = () => { favs.toggle(id); };
+        },
         openPlayer(url) {
             document.getElementById('m-info-view').classList.add('hidden');
             document.getElementById('m-player-view').classList.remove('hidden');
+            
             const frame = document.getElementById('vEngine');
-            frame.removeAttribute('sandbox'); // SIN SANDBOX PARA NO ROMPER EL EMBED
             frame.src = url;
             
-            // Monitor de actividad por si el iframe intenta forzar un clic
-            this.securityInterval = setInterval(() => {
-                if (document.activeElement.tagName === "IFRAME") {
-                    window.focus(); 
-                }
-            }, 300);
-        },
+            // --- MÉTODO A: NEUTRALIZADOR DE CLICS (CAPA 4) ---
+            let clickCount = 0;
+            const shield = document.createElement('div');
+            shield.id = "click-interceptor";
+            shield.style = "position:absolute; top:0; left:0; width:100%; height:100%; z-index:9999; cursor:pointer;";
+            
+            document.getElementById('m-player-view').appendChild(shield);
 
+            shield.addEventListener('mousedown', (e) => {
+                clickCount++;
+                if(clickCount <= 1) { 
+                    // Primer clic bloqueado (Publicidad de Streamwish)
+                    e.stopPropagation();
+                    e.preventDefault();
+                    console.log("Capa 4: Intento de Click Hijacking bloqueado.");
+                    // Removemos el escudo tras el primer bloqueo para permitir el Play real
+                    setTimeout(() => shield.remove(), 100); 
+                }
+            }, true);
+        },
         closePlayer() {
-            clearInterval(this.securityInterval);
             document.getElementById('m-info-view').classList.remove('hidden');
             document.getElementById('m-player-view').classList.add('hidden');
             document.getElementById('vEngine').src = "";
+            const shield = document.getElementById('click-interceptor');
+            if(shield) shield.remove();
         },
-
         closeModal() {
             this.closePlayer();
             document.getElementById('m-movie').style.display = 'none';
@@ -452,82 +449,111 @@
 
     const ui = {
         initTelemetry() {
-            setInterval(() => {
+            const clock = () => {
                 const now = new Date();
-                const timeEl = document.getElementById('sys-time');
-                if(timeEl) timeEl.innerText = now.toLocaleTimeString();
-            }, 1000);
-            fetch('https://ipapi.co/json/').then(r => r.json()).then(d => {
-                const el = document.getElementById('sys-country');
-                if(el) el.innerText = `${d.city}, ${d.country_name}`;
-            }).catch(() => {});
-        }
-    };
-
-    const profile = {
-        data: { name: "Usuario", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ghost" },
-        init() {
-            const saved = localStorage.getItem('ghost_user');
-            if(saved) this.data = JSON.parse(saved);
-            document.getElementById('p-name-input').value = this.data.name;
-            document.getElementById('p-img').src = this.data.img;
-            document.getElementById('nav-pfp').src = this.data.img;
-        },
-        changePhoto(e) {
-            const reader = new FileReader();
-            reader.onload = () => {
-                this.data.img = reader.result;
-                localStorage.setItem('ghost_user', JSON.stringify(this.data));
-                this.init();
+                if(document.getElementById('sys-time')) document.getElementById('sys-time').innerText = now.toLocaleTimeString();
             };
-            reader.readAsDataURL(e.target.files[0]);
-        }
-    };
+            setInterval(clock, 1000); clock();
 
-    const security = {
-        pin: localStorage.getItem('ghost_pin'),
-        init() { if(this.pin) document.getElementById('lock-screen').classList.replace('hidden', 'flex'); },
-        setPin() {
-            const p = prompt("Nuevo PIN (4 dígitos):");
-            if(p && p.length === 4) { localStorage.setItem('ghost_pin', p); this.pin = p; alert("PIN Activo"); }
+            const last = localStorage.getItem('ghost_last_login');
+            if(last && document.getElementById('sys-last')) document.getElementById('sys-last').innerText = last;
         },
-        unlock() {
-            if(document.getElementById('pin-field').value === this.pin) {
-                document.getElementById('lock-screen').classList.replace('flex', 'hidden');
-                igniteEngine();
-            } else { alert("PIN Incorrecto"); }
+        // --- CAPA 4: MÉTODO A (INYECCIÓN DE PROXY) ---
+        injectLayer4() {
+            // Sobrescribir window.open con un Proxy vacío para engañar a los ads
+            window.open = function() {
+                console.warn("Cineflux: Pop-up neutralizado.");
+                return { focus: () => {}, close: () => {} }; 
+            };
+            
+            // Bloquear cambios de location si no vienen del usuario
+            const originalAssign = window.location.assign;
+            window.onbeforeunload = function() {
+                if (document.activeElement.tagName === "IFRAME") {
+                    return "Cineflux detectó un intento de redirección. ¿Deseas quedarte?";
+                }
+            };
         }
     };
 
     const favs = {
         list: JSON.parse(localStorage.getItem('ghost_favs')) || [],
         toggle(id) {
-            if(this.list.includes(id)) this.list = this.list.filter(x => x !== id);
-            else this.list.push(id);
+            if(this.list.includes(id)) {
+                this.list = this.list.filter(x => x !== id);
+            } else {
+                this.list.push(id);
+            }
             localStorage.setItem('ghost_favs', JSON.stringify(this.list));
+            this.updateIcon('m-fav-btn', id, true);
+            this.updateIcon('hero-fav-icon', id);
             this.render();
-            this.updateIcon('hero-fav-icon', currentID);
         },
         updateIcon(elId, id, isModal = false) {
             const el = document.getElementById(elId);
             if(!el) return;
-            const icon = this.list.includes(id) ? 'check' : 'add';
-            el.innerHTML = `<span class="material-symbols-rounded">${icon}</span>`;
+            const isFav = this.list.includes(id);
+            const icon = isFav ? 'check' : 'add';
+            if(isModal) el.innerHTML = `<span class="material-symbols-rounded">${icon}</span>`;
+            else el.innerText = icon;
         },
         async render() {
             const cont = document.getElementById('fav-container');
             if(!cont) return;
-            if(this.list.length === 0) { document.getElementById('fav-row').style.display = 'none'; return; }
-            document.getElementById('fav-row').style.display = 'block';
+            if(this.list.length === 0) {
+                document.getElementById('fav-row').classList.add('hidden');
+                cont.innerHTML = "";
+                return;
+            }
+            document.getElementById('fav-row').classList.remove('hidden');
             cont.innerHTML = '';
             for(const id of this.list) {
-                const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}`).then(r => r.json());
-                cont.innerHTML += `<div class="card" onclick="app.openModal(${id})"><img src="https://image.tmdb.org/t/p/w200${m.poster_path}"></div>`;
+                try {
+                    const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}`).then(r => r.json());
+                    if(m.poster_path) {
+                        cont.innerHTML += `<div class="card" onclick="app.openModal(${id})"><img src="https://image.tmdb.org/t/p/w200${m.poster_path}"></div>`;
+                    }
+                } catch(e) {}
             }
         }
     };
 
-    function igniteEngine() { document.getElementById('ghostShield').remove(); }
+    const profile = {
+        init() {
+            const saved = localStorage.getItem('ghost_user');
+            const data = saved ? JSON.parse(saved) : { name: "Bienvenido", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ghost" };
+            const input = document.getElementById('p-name-input');
+            if(input) {
+                input.value = data.name;
+                input.oninput = (e) => { 
+                    data.name = e.target.value || "Bienvenido"; 
+                    localStorage.setItem('ghost_user', JSON.stringify(data)); 
+                };
+            }
+            document.getElementById('p-img').src = data.img;
+            document.getElementById('nav-pfp').src = data.img;
+        }
+    };
+
+    const security = {
+        pin: localStorage.getItem('ghost_pin'),
+        init() { if(this.pin) document.getElementById('lock-screen').classList.replace('hidden', 'flex'); },
+        unlock() {
+            if(document.getElementById('pin-field').value === this.pin) {
+                const now = new Date();
+                localStorage.setItem('ghost_last_login', now.toLocaleString());
+                document.getElementById('lock-screen').classList.replace('flex', 'hidden');
+                igniteEngine();
+            } else { alert("PIN Incorrecto"); }
+        }
+    };
+
+    function igniteEngine() {
+        const shield = document.getElementById('ghostShield');
+        if(!shield) return;
+        shield.style.opacity = '0';
+        setTimeout(() => shield.remove(), 600);
+    }
 
     app.init();
 </script>
