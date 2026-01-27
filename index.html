@@ -10,285 +10,371 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
 
     <style>
-        :root { --primary: #3b82f6; --bg: #000; --surface: #0a0a0a; --text: #fff; }
-        /* TEMAS PERSONALIZADOS */
+        :root { --primary: #3b82f6; --bg: #000; --surface: #0a0a0a; --text: #fff; --header-h: 80px; --tabs-h: 60px; }
         body.light-mode { --bg: #f2f2f7; --surface: #ffffff; --text: #000; --primary: #007aff; }
         body.neon-mode { --bg: #0d001a; --surface: #1a0033; --primary: #ff00ff; --text: #fff; }
         
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--text); overflow-x: hidden; transition: 0.3s; }
 
-        /* VISTAS */
-        .view { display: none; min-height: 100vh; padding-bottom: 120px; }
-        .view.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* SCROLLBAR OCULTA PERO FUNCIONAL */
+        ::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
 
-        /* CARDS & GRID EXPLORAR FIX */
-        .section-title { padding: 30px 20px 15px; font-size: 1.1rem; font-weight: 900; color: #555; text-transform: uppercase; }
-        .h-scroll { display: flex; gap: 15px; overflow-x: auto; padding: 0 20px; scrollbar-width: none; }
-        .h-scroll::-webkit-scrollbar { display: none; }
-        .card { min-width: 150px; border-radius: 18px; overflow: hidden; background: var(--surface); border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; aspect-ratio: 2/3; }
+        /* VISTAS */
+        .view { display: none; min-height: 100vh; padding-top: calc(var(--header-h) + var(--tabs-h) + 20px); padding-bottom: 120px; overflow-x: hidden; }
+        
+        /* HOME: Padding 0 para el Hero inmersivo */
+        #v-home { padding-top: 0 !important; } 
+
+        /* CORRECCIÓN FINAL: Cuando se filtra por categoría, empujamos el contenido hacia abajo */
+        #category-grid {
+            padding-top: calc(var(--header-h) + var(--tabs-h) + 20px);
+        }
+
+        .view.active { display: block; animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .view#v-search, .view#v-profile { padding-top: 100px; } 
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* HEADER & TABS STICKY INTELIGENTE */
+        header { 
+            position: fixed; top: 0; left: 0; width: 100%; height: var(--header-h); 
+            z-index: 2000; transition: transform 0.4s ease, background 0.3s; 
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+        }
+        
+        #tabs-menu {
+            position: fixed; top: var(--header-h); left: 0; width: 100%; height: var(--tabs-h);
+            z-index: 1900; display: flex; gap: 12px; padding: 0 20px;
+            align-items: center; overflow-x: auto; 
+            transition: transform 0.4s ease, top 0.4s ease, background 0.3s;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0) 100%);
+        }
+
+        /* Clases para ocultar al hacer scroll */
+        body.scroll-down header { transform: translateY(-100%); }
+        body.scroll-down #tabs-menu { transform: translateY(-140%); } 
+
+        .tab-item {
+            padding: 8px 18px; border-radius: 100px; font-size: 0.8rem; font-weight: 700;
+            text-transform: capitalize; white-space: nowrap; cursor: pointer;
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.1); color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        .tab-item.active { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); }
+
+        /* GRID RESPONSIVO */
+        .grid-responsive { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px; }
+        @media (min-width: 600px) { .grid-responsive { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 1024px) { .grid-responsive { grid-template-columns: repeat(5, 1fr); } }
+
+        /* CARDS & RATINGS */
+        .section-title { padding: 10px 20px 15px; font-size: 1.2rem; font-weight: 800; color: #fff; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; }
+        .section-title::before { content: ''; width: 4px; height: 20px; background: var(--primary); border-radius: 2px; display: block; }
+        
+        .h-scroll { display: flex; gap: 15px; overflow-x: auto; padding: 0 20px 20px; }
+        
+        .card { 
+            min-width: 140px; border-radius: 16px; overflow: hidden; background: var(--surface); 
+            border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; aspect-ratio: 2/3; position: relative; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .card:active { transform: scale(0.95); }
         .card img { width: 100%; height: 100%; object-fit: cover; }
         
-        #search-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; padding: 20px; }
+        /* ETIQUETA DE PUNTUACIÓN */
+        .rating-badge {
+            position: absolute; top: 8px; right: 8px;
+            background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+            color: #fff; font-size: 10px; font-weight: 900;
+            padding: 4px 8px; border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; gap: 3px;
+            z-index: 10;
+        }
+        .rating-badge span { font-size: 10px; color: #fbbf24; }
 
         /* NAV BAR */
-        .nav-bar { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 450px; height: 75px; background: rgba(10,10,10,0.8); backdrop-filter: blur(20px); border-radius: 40px; display: flex; justify-content: space-around; align-items: center; border: 1px solid rgba(255,255,255,0.1); z-index: 4000; }
-        .nav-item { color: #444; text-align: center; font-size: 0.7rem; font-weight: 800; transition: 0.3s; }
-        .nav-item.active { color: var(--primary); }
-        .nav-item span { display: block; font-size: 1.8rem; }
+        .nav-bar { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; height: 70px; background: rgba(15,15,15,0.85); backdrop-filter: blur(20px); border-radius: 25px; display: flex; justify-content: space-evenly; align-items: center; border: 1px solid rgba(255,255,255,0.08); z-index: 4000; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .nav-item { color: #666; text-align: center; font-size: 10px; font-weight: 700; transition: 0.3s; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .nav-item.active { color: var(--primary); transform: translateY(-2px); }
+        .nav-item span { font-size: 24px; }
 
-        /* AJUSTES ITEMS */
-        .setting-group { background: var(--surface); border-radius: 25px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
-        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        .setting-label { font-size: 13px; font-weight: 600; opacity: 0.7; }
-        .setting-val { font-size: 13px; font-weight: 900; color: var(--primary); }
+        /* AJUSTES */
+        .setting-group { background: var(--surface); border-radius: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
+        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .setting-label { font-size: 14px; font-weight: 500; opacity: 0.8; }
+        .setting-val { font-size: 13px; font-weight: 700; color: var(--primary); }
 
         /* MODAL */
         .modal { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; overflow-y: auto; }
-        .legal-modal { position: fixed; inset: 0; background: #000; z-index: 6000; display: none; padding: 40px 25px; }
+        
+        /* REPRODUCTOR MEJORADO */
+        #m-player-view { background: #000; position: fixed; inset: 0; z-index: 6000; display: flex; flex-direction: column; }
+        .player-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; position: absolute; top: 0; left: 0; width: 100%; z-index: 20; background: linear-gradient(to bottom, black, transparent); pointer-events: none; }
+        .player-header button { pointer-events: auto; }
+        
+        .viewport-container { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; width: 100%; height: 100%; }
+        .viewport { width: 100%; height: 100%; border: none; }
+        
+        .player-controls { 
+            position: absolute; bottom: 0; left: 0; width: 100%; 
+            padding: 30px 25px 40px; 
+            background: linear-gradient(to top, black, transparent); 
+            z-index: 20; 
+            display: flex; flex-direction: column; gap: 15px;
+        }
 
-        /* REPRODUCTOR (GHOST ENGINE - SIN TOCAR) */
-        .viewport { position: relative; width: 100%; max-width: 1100px; aspect-ratio: 16 / 9; background: #000; box-shadow: 0 0 100px rgba(59, 130, 246, 0.15); overflow: hidden; border-radius: 12px; }
-        #vEngine { position: absolute; top: -5%; left: -5%; width: 110%; height: 100%; border: none; }
-        #ghostShield { position: absolute; inset: 0; z-index: 9999; background: rgba(0,0,0,0.01); cursor: pointer; display: flex; justify-content: center; align-items: center; }
-        .status-led { position: absolute; top: 20px; left: 20px; display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 900; color: #3b82f6; text-transform: uppercase; letter-spacing: 2px; z-index: 10000; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 4px; }
+        .report-bubble {
+            position: absolute; bottom: 90px; right: 25px;
+            background: #1a1a1a; padding: 10px; border-radius: 15px;
+            display: flex; flex-direction: column; gap: 5px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transform: scale(0); transform-origin: bottom right; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .report-bubble.open { transform: scale(1); }
+        .report-btn { padding: 10px 15px; border-radius: 10px; background: rgba(255,255,255,0.05); color: white; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="lock-screen" class="fixed inset-0 bg-black z-[9999] hidden flex flex-col items-center justify-center">
-        <span class="material-symbols-rounded text-blue-500 text-6xl mb-4 animate-pulse">lock</span>
-        <h2 class="font-black text-xl mb-6">PIN DE ACCESO</h2>
-        <input type="password" id="pin-field" maxlength="4" class="bg-[#111] border-2 border-blue-500 text-white text-4xl text-center w-40 p-4 rounded-2xl tracking-[10px] outline-none">
-        <button onclick="security.unlock()" class="mt-8 bg-blue-500 text-white px-12 py-4 rounded-xl font-black">ENTRAR</button>
-    </div>
-
-    <header class="fixed top-0 w-full h-20 flex items-center justify-between px-8 z-[2000] bg-gradient-to-b from-black to-transparent">
-        <div class="text-2xl font-black text-blue-500 italic tracking-tighter">CINEFLUX</div>
-        <img id="nav-pfp" onclick="app.nav('profile')" src="" class="w-10 h-10 rounded-full border-2 border-blue-500 object-cover cursor-pointer">
+    <header class="flex items-center justify-between px-6">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-rounded text-blue-500 text-3xl shadow-lg">movie_filter</span>
+            <div class="text-xl font-black italic tracking-tighter text-white drop-shadow-md">CINEFLUX <span class="text-blue-500 not-italic">OS</span></div>
+        </div>
+        <img id="nav-pfp" onclick="app.nav('profile')" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-9 h-9 rounded-full border border-white/20 object-cover cursor-pointer shadow-lg">
     </header>
 
-    <main id="v-home" class="view active">
-    <div id="hero" class="relative w-full h-[85vh] bg-cover bg-center transition-all duration-700">
-        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent flex flex-col justify-end p-8">
-            <div id="hero-tag" class="text-blue-500 font-black text-[10px] tracking-[3px] uppercase mb-2">Destacado</div>
-            <h1 id="hero-title" class="text-5xl font-black mb-4 leading-tight max-w-2xl">---</h1>
-            
-            <div class="flex flex-wrap gap-x-4 gap-y-1 mb-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                <span id="hero-meta">---</span>
-                <span class="text-blue-500">|</span>
-                <span>Dir: <span id="hero-dir" class="text-white">---</span></span>
-                <span class="text-blue-500">|</span>
-                <span>Estudio: <span id="hero-studio" class="text-white">---</span></span>
-                <span class="text-blue-500">|</span>
-                <span>Presupuesto: <span id="hero-budget" class="text-white">---</span></span>
-            </div>
+    <div id="tabs-menu"></div>
 
-            <p id="hero-sinopsis" class="text-gray-300 text-sm mb-6 line-clamp-3 max-w-xl">---</p>
-            
-            <div class="flex gap-4">
-                <button id="hero-play" class="flex-1 bg-white text-black h-16 rounded-2xl font-black flex items-center justify-center gap-2">
-                    <span class="material-symbols-rounded" style="font-variation-settings:'FILL' 1">play_arrow</span> REPRODUCIR
-                </button>
-                <button onclick="favs.toggleHero()" class="w-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10">
-                    <span id="hero-fav-icon" class="material-symbols-rounded">add</span>
-                </button>
+    <main id="v-home" class="view active">
+        <div id="hero" class="relative w-full h-[75vh] mx-auto mt-0 rounded-b-[40px] overflow-hidden bg-cover bg-center shadow-2xl mb-8">
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent flex flex-col justify-end p-6 md:p-10">
+                <div class="pt-20"> <div id="hero-tag" class="bg-blue-500 text-white text-[9px] font-black px-3 py-1 rounded-md w-max mb-3 uppercase tracking-wider shadow-lg shadow-blue-500/50">Recomendado</div>
+                    <h1 id="hero-title" class="text-4xl md:text-5xl font-black mb-3 leading-tight drop-shadow-xl">Cargando...</h1>
+                    <div class="flex flex-wrap items-center gap-3 mb-4 text-xs font-bold text-gray-300 drop-shadow-md">
+                        <span id="hero-year">2024</span>
+                        <span class="w-1 h-1 bg-gray-500 rounded-full"></span>
+                        <span id="hero-rating" class="text-yellow-400 flex items-center gap-1"><span class="material-symbols-rounded text-sm">star</span> 0.0</span>
+                        <span class="w-1 h-1 bg-gray-500 rounded-full"></span>
+                        <span id="hero-studio" class="text-blue-400">Studio</span>
+                    </div>
+                    <p id="hero-sinopsis" class="text-gray-300 text-sm mb-6 line-clamp-2 max-w-xl drop-shadow-md">...</p>
+                    <div class="flex gap-3">
+                        <button id="hero-play" class="flex-1 bg-white text-black h-14 rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-gray-200 transition active:scale-95 shadow-lg shadow-white/10">
+                            <span class="material-symbols-rounded fill-1">play_arrow</span> REPRODUCIR
+                        </button>
+                        <button id="hero-fav-btn-action" class="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10 active:scale-95 transition">
+                            <span id="hero-fav-icon" class="material-symbols-rounded">add</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-        <div id="fav-row" class="hidden">
+
+        <div id="fav-row" class="hidden animate-fade-in">
             <h2 class="section-title">Mi Lista</h2>
             <div id="fav-container" class="h-scroll"></div>
         </div>
+
         <div id="dynamic-content"></div>
+        <div id="category-grid" class="grid-responsive hidden pb-32"></div>
     </main>
 
-    <main id="v-search" class="view pt-24 px-6">
-        <div class="bg-[#111] p-5 rounded-2xl flex items-center border border-white/5 mb-8">
+    <main id="v-search" class="view px-5">
+        <h1 class="text-3xl font-black mb-6">Explorar</h1>
+        <div class="bg-[#151515] p-4 rounded-2xl flex items-center border border-white/5 mb-8 focus-within:border-blue-500 transition shadow-lg">
             <span class="material-symbols-rounded text-gray-500">search</span>
-            <input type="text" id="search-input" oninput="app.search(this.value)" placeholder="Buscar en la base de datos..." class="bg-transparent border-none outline-none ml-4 w-full text-white font-bold">
+            <input type="text" id="search-input" oninput="app.search(this.value)" placeholder="Películas, géneros, actores..." class="bg-transparent border-none outline-none ml-3 w-full text-white font-bold placeholder-gray-600">
         </div>
-        <div id="search-grid"></div>
+        <div id="search-grid" class="grid-responsive"></div>
     </main>
 
-    <main id="v-profile" class="view pt-28 px-6">
-        <div class="flex items-center gap-5 mb-10 bg-blue-500/10 p-5 rounded-[30px] border border-blue-500/20">
-            <div class="relative w-20 h-20">
-                <img id="p-img" src="" class="w-full h-full rounded-2xl border-2 border-blue-500 object-cover">
+    <main id="v-profile" class="view px-5">
+        <h1 class="text-3xl font-black mb-6">Configuración</h1>
+        
+        <div class="flex items-center gap-5 mb-8 bg-gradient-to-r from-blue-900/20 to-transparent p-5 rounded-[25px] border border-blue-500/20">
+            <div class="relative w-16 h-16 group">
+                <img id="p-img" src="" class="w-full h-full rounded-2xl border-2 border-blue-500 object-cover shadow-lg shadow-blue-500/20">
                 <input type="file" id="file-input" hidden accept="image/*" onchange="profile.changePhoto(event)">
-                <div class="absolute -bottom-2 -right-2 bg-blue-500 p-1.5 rounded-full border-2 border-black" onclick="document.getElementById('file-input').click()">
-                    <span class="material-symbols-rounded text-xs text-white">photo_camera</span>
+                <div class="absolute -bottom-2 -right-2 bg-blue-500 p-1.5 rounded-full border-2 border-black cursor-pointer active:scale-90 transition" onclick="document.getElementById('file-input').click()">
+                    <span class="material-symbols-rounded text-xs text-white block">edit</span>
                 </div>
             </div>
             <div class="flex-1">
-                <input type="text" id="p-name-input" onblur="profile.saveName(this.value)" class="bg-transparent text-2xl font-black w-full outline-none text-white border-b border-white/10">
-                <p class="text-[9px] font-black text-blue-500 tracking-[3px] uppercase mt-1">Platinum OS User</p>
+                <label class="text-[10px] text-blue-400 font-bold uppercase tracking-wider">Nombre de Usuario</label>
+                <input type="text" id="p-name-input" class="bg-transparent text-xl font-black w-full outline-none text-white border-b border-transparent focus:border-blue-500 transition placeholder-gray-600" placeholder="Escribe tu nombre">
             </div>
         </div>
 
-        <h3 class="text-[10px] font-black text-gray-500 mb-3 ml-2 tracking-[2px]">HARDWARE & SOFTWARE</h3>
-        <div class="setting-group">
-            <div class="setting-item"><span class="setting-label">Hardware</span><span class="setting-val">G-Engine v4.2</span></div>
-            <div class="setting-item"><span class="setting-label">Versión Android</span><span class="setting-val">14.0 (AOSP)</span></div>
-            <div class="setting-item"><span class="setting-label">País Local</span><span id="sys-country" class="setting-val">Cargando...</span></div>
-            <div class="setting-item"><span class="setting-label">Hora Local</span><span id="sys-time" class="setting-val">--:--</span></div>
-            <div class="setting-item"><span class="setting-label">Último Inicio</span><span id="sys-last" class="setting-val">--/--</span></div>
-            <div class="setting-item"><span class="setting-label">Cronómetro App</span><span id="sys-timer" class="setting-val text-green-500">00:00:00</span></div>
-        </div>
-
-        <h3 class="text-[10px] font-black text-gray-500 mb-3 ml-2 tracking-[2px]">PERSONALIZACIÓN</h3>
+        <h3 class="text-[11px] font-black text-gray-500 mb-3 ml-2 tracking-[2px] uppercase">Sistema & Ubicación</h3>
         <div class="setting-group">
             <div class="setting-item">
-                <span class="setting-label">Tema del Sistema</span>
-                <select onchange="ui.setTheme(this.value)" class="bg-transparent font-black text-blue-500 outline-none">
-                    <option value="dark">Dark Ghost</option>
-                    <option value="light">Pure Light</option>
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-rounded text-gray-500">public</span>
+                    <span class="setting-label">País Local</span>
+                </div>
+                <span id="sys-country" class="setting-val flex items-center gap-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Detectando...
+                </span>
+            </div>
+            <div class="setting-item">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-rounded text-gray-500">schedule</span>
+                    <span class="setting-label">Hora Local</span>
+                </div>
+                <span id="sys-time" class="setting-val font-mono">--:--:--</span>
+            </div>
+             <div class="setting-item">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-rounded text-gray-500">timer</span>
+                    <span class="setting-label">Tiempo de Sesión</span>
+                </div>
+                <span id="sys-timer" class="setting-val text-green-500 font-mono">00:00:00</span>
+            </div>
+        </div>
+
+        <h3 class="text-[11px] font-black text-gray-500 mb-3 ml-2 tracking-[2px] uppercase">Apariencia</h3>
+        <div class="setting-group">
+            <div class="setting-item">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-rounded text-gray-500">palette</span>
+                    <span class="setting-label">Tema Visual</span>
+                </div>
+                <select id="theme-selector" onchange="ui.setTheme(this.value)" class="bg-transparent font-black text-blue-500 outline-none text-right">
+                    <option value="dark">Dark Mode</option>
+                    <option value="light">Light Mode</option>
                     <option value="neon">Neon Cyber</option>
                 </select>
             </div>
-            <div class="setting-item">
-                <span class="setting-label">Idioma</span>
-                <span class="setting-val">Español (Latam)</span>
-            </div>
-        </div>
-
-        <h3 class="text-[10px] font-black text-gray-500 mb-3 ml-2 tracking-[2px]">SEGURIDAD & LEGAL</h3>
-        <div class="setting-group">
-            <div class="setting-item" onclick="security.setPin()">
-                <span class="setting-label">PIN de Seguridad</span>
-                <span class="material-symbols-rounded text-blue-500">lock</span>
-            </div>
-            <div class="setting-item" onclick="ui.showLegal('privacidad')">
-                <span class="setting-label">Privacidad</span>
-                <span class="material-symbols-rounded">chevron_right</span>
-            </div>
-            <div class="setting-item" onclick="ui.showLegal('dmca')">
-                <span class="setting-label">DMCA</span>
-                <span class="material-symbols-rounded">chevron_right</span>
-            </div>
-            <div class="setting-item" onclick="ui.showLegal('politica')">
-                <span class="setting-label">Política</span>
-                <span class="material-symbols-rounded">chevron_right</span>
-            </div>
-        </div>
-
-        <h3 class="text-[10px] font-black text-gray-500 mb-3 ml-2 tracking-[2px]">CONTACTO Y RED</h3>
-        <div class="grid grid-cols-3 gap-3 mb-10">
-            <a href="mailto:ghost@cineflux.com" class="bg-[#111] p-4 rounded-3xl text-center border border-white/5">
-                <span class="material-symbols-rounded block mb-1 text-red-500">mail</span>
-                <span class="text-[9px] font-bold uppercase">Gmail</span>
-            </a>
-            <a href="#" class="bg-[#111] p-4 rounded-3xl text-center border border-white/5">
-                <span class="material-symbols-rounded block mb-1 text-pink-500">share</span>
-                <span class="text-[9px] font-bold uppercase">TikTok</span>
-            </a>
-            <a href="#" class="bg-[#111] p-4 rounded-3xl text-center border border-white/5">
-                <span class="material-symbols-rounded block mb-1 text-blue-400">send</span>
-                <span class="text-[9px] font-bold uppercase">Telegram</span>
-            </a>
         </div>
         
-        <button onclick="app.reset()" class="w-full p-5 text-red-500 font-black text-xs tracking-[2px] uppercase bg-red-500/10 rounded-3xl mb-10">Cerrar Sesión Completa</button>
+        <button onclick="app.reset()" class="w-full p-4 text-red-500 font-black text-xs tracking-[2px] uppercase bg-red-500/10 rounded-2xl border border-red-500/20 active:scale-95 transition mb-10">Borrar Datos y Reiniciar</button>
     </main>
 
-    <div id="m-movie" class="modal">
+    <div id="m-movie" class="modal animate-[fadeIn_0.3s_ease]">
         <div id="m-info-view">
-            <div id="m-banner" class="w-full h-[55vh] bg-cover bg-center relative">
-                <button onclick="app.closeModal()" class="absolute top-8 right-8 bg-black/60 w-12 h-12 rounded-full flex items-center justify-center z-50 backdrop-blur-md">
-                    <span class="material-symbols-rounded">close</span>
+            <div id="m-banner" class="w-full h-[60vh] bg-cover bg-center relative">
+                <div class="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-50">
+                    <button onclick="app.closeModal()" class="bg-black/50 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md border border-white/10 active:scale-90 transition">
+                        <span class="material-symbols-rounded text-white">arrow_back</span>
+                    </button>
+                    <button id="m-fav-btn" class="bg-black/50 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md border border-white/10 active:scale-90 transition">
+                        <span class="material-symbols-rounded text-white">add</span>
+                    </button>
+                </div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></div>
+            </div>
+
+            <div class="px-6 pb-24 -mt-32 relative z-10">
+                <div class="flex items-start justify-between mb-2">
+                    <h1 id="m-title" class="text-3xl font-black leading-tight max-w-[80%]">Título</h1>
+                    <div class="bg-white/10 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10 flex flex-col items-center">
+                        <span class="text-[10px] uppercase font-bold text-gray-400">Rating</span>
+                        <span id="m-rate-badge" class="font-black text-yellow-400 text-sm">0.0</span>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-6">
+                    <span id="m-year">2024</span> • <span id="m-runtime">0 MIN</span> • <span id="m-studio" class="text-blue-500">Studio</span>
+                </div>
+
+                <button id="m-play-btn" class="w-full bg-white text-black h-16 rounded-2xl font-black text-lg mb-8 flex items-center justify-center gap-2 shadow-lg shadow-white/10 active:scale-95 transition">
+                    <span class="material-symbols-rounded fill-1">play_arrow</span> REPRODUCIR AHORA
                 </button>
-                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
-            </div>
 
-            <div class="px-8 pb-20 -mt-24 relative z-10">
-                <h1 id="m-title" class="text-4xl font-black mb-2">---</h1>
-                <p id="m-meta" class="text-blue-500 font-black mb-6 uppercase text-[11px] tracking-widest"></p>
-                <p id="m-plot" class="text-gray-400 leading-relaxed mb-8 text-sm"></p>
+                <p id="m-plot" class="text-gray-300 leading-relaxed mb-8 text-sm font-light">Sinopsis...</p>
 
-                <div class="flex gap-4 mb-10">
-                    <button id="m-play-btn" class="flex-1 bg-white text-black h-16 rounded-2xl font-black text-lg transition-transform active:scale-95">REPRODUCIR</button>
-                    <button id="m-fav-btn" class="w-16 bg-[#111] rounded-2xl border border-white/10 flex items-center justify-center"></button>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3 mb-10">
-                    <div class="bg-[#0a0a0a] p-4 rounded-2xl border border-white/5">
-                        <span class="text-[9px] text-blue-500 font-black block mb-1 tracking-tighter">DIRECTOR</span>
-                        <p id="m-dir" class="text-xs font-bold truncate">---</p>
+                <div class="grid grid-cols-2 gap-3 mb-8">
+                    <div class="bg-[#111] p-4 rounded-xl border border-white/5">
+                        <span class="text-[9px] text-gray-500 font-black block mb-1 uppercase">Director</span>
+                        <p id="m-dir" class="text-xs font-bold text-white truncate">---</p>
                     </div>
-                    <div class="bg-[#0a0a0a] p-4 rounded-2xl border border-white/5">
-                        <span class="text-[9px] text-blue-500 font-black block mb-1 tracking-tighter">ESTUDIO</span>
-                        <p id="m-studio" class="text-xs font-bold truncate">---</p>
-                    </div>
-                    <div class="bg-[#0a0a0a] p-4 rounded-2xl border border-white/5">
-                        <span class="text-[9px] text-blue-500 font-black block mb-1 tracking-tighter">PRESUPUESTO</span>
-                        <p id="m-budget" class="text-xs font-bold">---</p>
-                    </div>
-                    <div class="bg-[#0a0a0a] p-4 rounded-2xl border border-white/5">
-                        <span class="text-[9px] text-blue-500 font-black block mb-1 tracking-tighter">RECAUDACIÓN</span>
-                        <p id="m-revenue" class="text-xs font-bold">---</p>
+                    <div class="bg-[#111] p-4 rounded-xl border border-white/5">
+                        <span class="text-[9px] text-gray-500 font-black block mb-1 uppercase">Ganancia</span>
+                        <p id="m-revenue" class="text-xs font-bold text-green-500">---</p>
                     </div>
                 </div>
 
-                <h3 class="font-black mb-5 text-[10px] tracking-[3px] text-gray-500 uppercase">Reparto Principal</h3>
-                <div id="m-cast" class="flex gap-5 overflow-x-auto pb-6 scrollbar-hide"></div>
+                <h3 class="font-black mb-4 text-sm">Reparto Principal</h3>
+                <div id="m-cast" class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide"></div>
             </div>
-        </div>
-
-        <div id="m-player-view" class="hidden fixed inset-0 bg-black flex flex-col justify-center items-center z-[6000]">
-            <div class="viewport">
-                <div class="status-led"><div class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>Ghost Shield Active</div>
-                <div id="ghostShield" onclick="igniteEngine()"><div class="play-hint"><svg width="35" height="35" viewBox="0 0 24 24" fill="#3b82f6"><path d="M8 5v14l11-7z"/></svg></div></div>
-                <iframe id="vEngine" src="" allow="autoplay; fullscreen" referrerpolicy="no-referrer"></iframe>
-            </div>
-            <button onclick="app.closePlayer()" class="mt-12 bg-white/10 text-white px-10 py-4 rounded-full font-black text-xs uppercase tracking-widest">Salir de la función</button>
         </div>
     </div>
 
-    <div id="modal-legal" class="legal-modal">
-        <h1 id="legal-title" class="text-3xl font-black text-blue-500 mb-6 uppercase tracking-tighter"></h1>
-        <div id="legal-body" class="text-gray-400 text-sm leading-relaxed space-y-4 overflow-y-auto max-h-[70vh]"></div>
-        <button onclick="ui.closeLegal()" class="mt-10 w-full bg-blue-500 p-5 rounded-2xl font-black">ENTENDIDO</button>
+    <div id="m-player-view" class="hidden">
+        <div class="player-header">
+            <button onclick="app.closePlayer()" class="text-white opacity-80 hover:opacity-100 transition">
+                <span class="material-symbols-rounded text-4xl shadow-black drop-shadow-md">expand_more</span>
+            </button>
+            <div class="bg-red-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg animate-pulse">En Vivo</div>
+        </div>
+        
+        <div class="viewport-container">
+            <iframe id="vEngine" class="viewport" src="" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" frameborder="0"></iframe>
+        </div>
+
+        <div id="report-menu" class="report-bubble">
+            <a href="#" id="btn-report-email" class="report-btn hover:bg-white/10"><span class="material-symbols-rounded text-sm">mail</span> Email</a>
+            <a href="#" id="btn-report-tg" class="report-btn hover:bg-white/10"><span class="material-symbols-rounded text-sm">send</span> Telegram</a>
+        </div>
+
+        <div class="player-controls">
+            <div class="flex justify-between items-end">
+                <div>
+                    <h2 id="p-overlay-title" class="text-2xl font-black text-white mb-1 drop-shadow-md">Título Película</h2>
+                    <div class="flex items-center gap-3 text-xs font-bold text-gray-300 drop-shadow-md">
+                        <span id="p-overlay-year">2024</span>
+                        <span class="w-1 h-1 bg-white rounded-full"></span>
+                        <span id="p-overlay-studio">Studio</span>
+                        <span class="bg-yellow-500 text-black px-1.5 rounded text-[10px] font-black" id="p-overlay-rate">8.5</span>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                     <button onclick="app.toggleReport()" class="bg-white/10 w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-md border border-white/10 active:scale-90 transition text-white">
+                        <span class="material-symbols-rounded">flag</span>
+                    </button>
+                    <button onclick="app.shareMovie()" class="bg-blue-600 w-12 h-12 rounded-full flex items-center justify-center shadow-lg shadow-blue-600/40 active:scale-90 transition text-white">
+                        <span class="material-symbols-rounded">share</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <nav class="nav-bar">
-        <div onclick="app.nav('home', this)" class="nav-item active"><span class="material-symbols-rounded">home_max</span>Inicio</div>
-        <div onclick="app.nav('search', this)" class="nav-item"><span class="material-symbols-rounded">explore</span>Explorar</div>
-        <div onclick="app.nav('profile', this)" class="nav-item"><span class="material-symbols-rounded">settings_slow_motion</span>Ajustes</div>
+        <div onclick="app.nav('home', this)" class="nav-item active"><span class="material-symbols-rounded">home_filled</span>Inicio</div>
+        <div onclick="app.nav('search', this)" class="nav-item"><span class="material-symbols-rounded">travel_explore</span>Buscar</div>
+        <div onclick="app.nav('profile', this)" class="nav-item"><span class="material-symbols-rounded">settings</span>Ajustes</div>
     </nav>
 
     <script>
     const TMDB_KEY = 'b6083b855479a79fd9acdb0a2789f126';
-    let currentID = null;
-    // Capa 1: Memoria de Scroll
-    let scrollMemory = {}; 
+    let lastScrollTop = 0;
+    let appStartTime = Date.now();
+    let currentMovieData = null; // Para guardar datos para el player
 
+    // URLs de ejemplo (Reemplaza con tus enlaces reales si es necesario)
     const CATALOGO = [
         { id: 1522377, link: "https://hgplaycdn.com/e/27tc341hgd98", categoria: "Estreno" },
         { id: 1180831, link: "https://hgplaycdn.com/e/27tc341hgd98", categoria: "Estreno" },
         { id: 1547050, link: "https://yuguaab.com/e/3urdbixpgqjr", categoria: "Estreno" },
         { id: 1242898, link: "https://vimeos.net/embed-gifb0mvp14aw.html", categoria: "Estreno" },
-        { id: 339849, link: "https://doo.lat/collector.php?h=038_ZjqGVZXep9JK_laSNifOd56DimvqH.R7d2O0y5TXExI-&selectedLang=latin_spanish", categoria: "Estreno" },
+        { id: 533535, link: "https://vimeos.net/embed-gifb0mvp14aw.html", categoria: "Estreno" }, // Deadpool & Wolverine (Ejemplo ID real)
         { id: 1084242, link: "https://vimeos.net/embed-mjskmrhlb91i.html", categoria: "Estreno" },
-        { id: 83533, link: "https://doo.lat/collector.php?h=038_ZjqGVZXep9JK_laSNifOd9ltFsKBY8l7AGi5HdfD5Nc-&selectedLang=latin_spanish", categoria: "Estreno" }, 
-        { id: 1359076, link: "https://vimeos.net/embed-0igbac4vbv79.html", categoria: "Estreno" }, 
-        { id: 1156594, link: "https://vimeos.net/embed-dhvfk41hw7n1.html", categoria: "Estreno" },
-        { id: 1049574, link: "https://vimeos.net/embed-txrhzvlocvyi.html", categoria: "Estreno" },              
         { id: 1387382, link: "https://player.cuevana.is/player.php?h=rxPRsRSX4IlkyS1F21W5j1LWaxDrSlOWwDzFztiv8jRa0TKuAj7i3ipYgfIdutaO", categoria: "Acción" },
         { id: 1556834, link: "https://vimeos.net/embed-4pahvxfpu00m.html", categoria: "Acción" },
-        { id: 1100988, link: "https://vimeos.net/embed-k2u1lnxya3vp.html", categoria: "Terror" },
-        { id: 1078605, link: "https://vimeos.net/embed-fu1czv6eud18.html", categoria: "Terror" },
         { id: 426063, link: "https://vimeos.net/embed-wuozbsxutkuj.html", categoria: "Terror" },
-        { id: 1197137, link: "https://vimeos.net/embed-xjc6uuujzzax.html", categoria: "Terror" },
-        { id: 574475, link: "https://vimeos.net/embed-3zh5v5e8teu4.html", categoria: "Terror" },
-        { id: 1234731, link: "https://vimeos.net/embed-gq9b1svkltoc.html", categoria: "Terror" },
-        { id: 1228246, link: "https://yuguaab.com/e/cda0b2p8ejp7", categoria: "Terror" },
-        { id: 772462, link: "https://yuguaab.com/e/lu9i1cgflzqz", categoria: "Terror" },
-        { id: 1010756, link: "https://yuguaab.com/e/kya04qij26vg", categoria: "Terror" },        
-        { id: 1284120, link: "https://vimeos.net/embed-dp8j0qcm1k34.html", categoria: "Terror" }
+        { id: 1197137, link: "https://vimeos.net/embed-xjc6uuujzzax.html", categoria: "Terror" }
     ];
 
-    const CONTENT_LINKS = Object.fromEntries(CATALOGO.filter(m => m.link).map(m => [m.id, m.link]));
+    const CONTENT_LINKS = Object.fromEntries(CATALOGO.map(m => [m.id, m.link]));
     const DATABASE = CATALOGO.reduce((acc, m) => {
         if (!acc[m.categoria]) acc[m.categoria] = [];
         acc[m.categoria].push(m.id);
@@ -298,264 +384,367 @@
     const app = {
         init() {
             this.renderHome();
+            this.renderTabs();
             profile.init();
-            security.init();
-            favs.render();
-            ui.initTelemetry();
-            ui.injectLayer4(); // Activar escudo anti-ads
+            favs.init();
+            ui.init();
+            
+            // Listener de Scroll Optimizado
+            window.addEventListener('scroll', () => this.handleScroll(), { passive: true });
+        },
 
-            const sInput = document.getElementById('search-input');
-            if(sInput) sInput.addEventListener('input', (e) => this.search(e.target.value));
-        },
-        reset() {
-            if(confirm("¿Cerrar sesión completa?")) {
-                localStorage.clear();
-                window.location.reload();
+        handleScroll() {
+            const st = window.pageYOffset || document.documentElement.scrollTop;
+            const body = document.body;
+            
+            if (st > lastScrollTop && st > 50) {
+                // Bajando: Ocultar
+                body.classList.add('scroll-down');
+            } else {
+                // Subiendo: Mostrar
+                body.classList.remove('scroll-down');
             }
+            lastScrollTop = st <= 0 ? 0 : st;
         },
-        // --- NAVEGACIÓN CON SCROLL MEMORY ---
+
+        renderTabs() {
+            const menu = document.getElementById('tabs-menu');
+            const categories = ["Inicio", ...Object.keys(DATABASE)];
+            menu.innerHTML = categories.map((cat, i) => `
+                <div class="tab-item ${i===0?'active':''}" onclick="app.filterCat(this, '${cat}')">${cat}</div>
+            `).join('');
+        },
+
+        filterCat(el, cat) {
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            
+            const dynamic = document.getElementById('dynamic-content');
+            const grid = document.getElementById('category-grid');
+            const hero = document.getElementById('hero');
+            const favRow = document.getElementById('fav-row');
+
+            if(cat === "Inicio") {
+                dynamic.classList.remove('hidden');
+                grid.classList.add('hidden');
+                hero.classList.remove('hidden');
+                if(favs.list.length > 0) favRow.classList.remove('hidden');
+            } else {
+                dynamic.classList.add('hidden');
+                grid.classList.remove('hidden');
+                hero.classList.add('hidden');
+                favRow.classList.add('hidden');
+                this.renderCategoryGrid(cat);
+            }
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        },
+
+        async renderCategoryGrid(cat) {
+            const grid = document.getElementById('category-grid');
+            grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Cargando catálogo...</div>';
+            const ids = DATABASE[cat] || [];
+            let html = '';
+            
+            for(const id of ids) {
+                try {
+                    const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json());
+                    html += this.createCard(m);
+                } catch(e) { console.error(e); }
+            }
+            grid.innerHTML = html;
+        },
+
+        createCard(m) {
+            const rate = m.vote_average.toFixed(1);
+            const rateColor = rate >= 7 ? 'text-green-400' : (rate >= 5 ? 'text-yellow-400' : 'text-red-400');
+            return `
+                <div class="card" onclick="app.openModal(${m.id})">
+                    <img src="https://image.tmdb.org/t/p/w500${m.poster_path}" loading="lazy">
+                    <div class="rating-badge">
+                        <span class="material-symbols-rounded" style="font-size:10px">star</span>
+                        <span class="${rateColor}">${rate}</span>
+                    </div>
+                </div>`;
+        },
+
         nav(id, el) {
-            const currentView = document.querySelector('.view.active');
-            if (currentView) {
-                scrollMemory[currentView.id] = currentView.scrollTop;
-            }
-
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(`v-${id}`).classList.add('active');
+            if(el) el.classList.add('active');
             
-            const target = document.getElementById(`v-${id}`);
-            target.classList.add('active');
-            if (el) el.classList.add('active');
-
-            if (scrollMemory[`v-${id}`]) {
-                target.scrollTop = scrollMemory[`v-${id}`];
-            }
+            const tabs = document.getElementById('tabs-menu');
+            tabs.style.display = (id === 'home') ? 'flex' : 'none';
+            window.scrollTo(0,0);
         },
+
         async renderHome() {
             const container = document.getElementById('dynamic-content');
-            if(!container) return;
             container.innerHTML = "";
             for (const [title, ids] of Object.entries(DATABASE)) {
                 const row = document.createElement('div');
                 row.innerHTML = `<h2 class="section-title">${title}</h2><div id="row-${title.replace(/\s/g,'')}" class="h-scroll"></div>`;
                 container.appendChild(row);
                 const el = document.getElementById(`row-${title.replace(/\s/g,'')}`);
-                for (const id of ids) {
-                    const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}`).then(r => r.json());
-                    if(m.poster_path) {
-                        el.innerHTML += `<div class="card" onclick="app.openModal(${id})"><img src="https://image.tmdb.org/t/p/w500${m.poster_path}"></div>`;
-                    }
-                }
+                
+                // Carga paralela para velocidad
+                const promises = ids.map(id => fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()));
+                const movies = await Promise.all(promises);
+                
+                el.innerHTML = movies.map(m => this.createCard(m)).join('');
             }
-            this.setHero(CATALOGO[0].id);
+            this.initHero();
         },
-        async setHero(id) {
-            const [d, c] = await Promise.all([
-                fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()),
-                fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${TMDB_KEY}`).then(r => r.json())
-            ]);
+
+        async initHero() {
+            // Seleccionar aleatorio del catálogo
+            const allIds = [].concat(...Object.values(DATABASE));
+            const randomId = allIds[Math.floor(Math.random() * allIds.length)];
             
-            currentID = id;
-            document.getElementById('hero').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
-            document.getElementById('hero-title').innerText = d.title;
-            document.getElementById('hero-sinopsis').innerText = d.overview;
-            
-            if(document.getElementById('hero-meta')) {
-                document.getElementById('hero-meta').innerText = `${d.release_date.split('-')[0]} • ${d.runtime} min • ⭐ ${d.vote_average.toFixed(1)}`;
-            }
-            document.getElementById('hero-play').onclick = () => app.openModal(id);
-            favs.updateIcon('hero-fav-icon', id);
+            try {
+                const d = await fetch(`https://api.themoviedb.org/3/movie/${randomId}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json());
+                const c = await fetch(`https://api.themoviedb.org/3/movie/${randomId}/credits?api_key=${TMDB_KEY}`).then(r => r.json());
+                const company = d.production_companies[0]?.name || 'Studio';
+
+                document.getElementById('hero').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.poster_path})`; // Poster para móvil se ve mejor a veces, o backdrop
+                // Usamos backdrop si es desktop, o object-cover
+                document.getElementById('hero').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
+
+                document.getElementById('hero-title').innerText = d.title;
+                document.getElementById('hero-year').innerText = d.release_date.split('-')[0];
+                document.getElementById('hero-rating').innerHTML = `<span class="material-symbols-rounded text-sm">star</span> ${d.vote_average.toFixed(1)}`;
+                document.getElementById('hero-studio').innerText = company;
+                document.getElementById('hero-sinopsis').innerText = d.overview;
+                document.getElementById('hero-play').onclick = () => this.openModal(randomId);
+                
+                const favBtn = document.getElementById('hero-fav-btn-action');
+                favBtn.onclick = () => favs.toggle(randomId);
+                favs.updateIcon(document.getElementById('hero-fav-icon'), randomId);
+            } catch(e) { console.log("Error cargando Hero", e); }
         },
-        async search(q) {
-            const grid = document.getElementById('search-grid');
-            if(!grid || q.length < 3) { if(grid) grid.innerHTML = ""; return; }
-            const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${q}&language=es-MX`).then(res => res.json());
-            grid.innerHTML = r.results.map(m => `<div class="card" onclick="app.openModal(${m.id})"><img src="https://image.tmdb.org/t/p/w300${m.poster_path}"></div>`).join('');
-        },
+
         async openModal(id) {
             const mod = document.getElementById('m-movie');
             mod.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-
-            const [d, c] = await Promise.all([
-                fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()),
-                fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${TMDB_KEY}`).then(r => r.json())
-            ]);
-
-            document.getElementById('m-banner').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
-            document.getElementById('m-title').innerText = d.title;
-            document.getElementById('m-plot').innerText = d.overview;
-            document.getElementById('m-meta').innerText = `${d.release_date.split('-')[0]} • ${d.runtime} min • ⭐ ${d.vote_average.toFixed(1)}`;
+            document.body.style.overflow = 'hidden'; // Bloquear scroll de fondo
             
-            document.getElementById('m-cast').innerHTML = c.cast.slice(0, 12).map(a => `
-                <div class="min-w-[85px] text-center">
-                    <img src="${a.profile_path ? 'https://image.tmdb.org/t/p/w200'+a.profile_path : 'https://via.placeholder.com/200x200'}" class="w-16 h-16 rounded-full mx-auto object-cover border-2 border-white/5 mb-2">
-                    <p class="text-[8px] font-black uppercase text-gray-400 leading-tight">${a.name}</p>
-                </div>
-            `).join('');
+            // Reset UI
+            document.getElementById('m-play-btn').innerText = "CARGANDO...";
+            document.getElementById('m-title').innerText = "Cargando...";
 
-            const btn = document.getElementById('m-play-btn');
-            if(CONTENT_LINKS[id]) {
-                btn.innerText = "REPRODUCIR";
-                btn.onclick = () => this.openPlayer(CONTENT_LINKS[id]);
-            } else {
-                btn.innerText = "SOLICITAR";
-                btn.onclick = () => window.location.href = `mailto:admin@ghostflux.com?subject=Solicitud: ${d.title}`;
+            try {
+                const [d, c] = await Promise.all([
+                    fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()),
+                    fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${TMDB_KEY}`).then(r => r.json())
+                ]);
+
+                currentMovieData = { ...d, studio: d.production_companies[0]?.name || 'N/A' }; // Guardar para el player
+
+                document.getElementById('m-banner').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
+                document.getElementById('m-title').innerText = d.title;
+                document.getElementById('m-rate-badge').innerText = d.vote_average.toFixed(1);
+                document.getElementById('m-year').innerText = d.release_date.split('-')[0];
+                document.getElementById('m-runtime').innerText = `${d.runtime} MIN`;
+                document.getElementById('m-studio').innerText = currentMovieData.studio;
+                document.getElementById('m-plot').innerText = d.overview || "Sin descripción disponible.";
+                
+                document.getElementById('m-dir').innerText = c.crew.find(p => p.job === 'Director')?.name || 'Desconocido';
+                document.getElementById('m-revenue').innerText = d.revenue > 0 ? `$${(d.revenue/1e6).toFixed(1)}M` : 'N/A';
+
+                document.getElementById('m-cast').innerHTML = c.cast.slice(0,8).map(a => `
+                    <div class="flex-shrink-0 text-center w-16">
+                        <img src="${a.profile_path?'https://image.tmdb.org/t/p/w200'+a.profile_path:'https://ui-avatars.com/api/?name='+a.name}" class="w-12 h-12 rounded-full mx-auto object-cover border border-white/20 mb-2">
+                        <p class="text-[9px] leading-tight font-bold text-gray-400 truncate">${a.name}</p>
+                    </div>
+                `).join('');
+
+                const playBtn = document.getElementById('m-play-btn');
+                if(CONTENT_LINKS[id]) {
+                    playBtn.onclick = () => this.openPlayer(CONTENT_LINKS[id]);
+                    playBtn.innerHTML = '<span class="material-symbols-rounded fill-1">play_arrow</span> REPRODUCIR AHORA';
+                    playBtn.disabled = false;
+                    playBtn.style.opacity = "1";
+                } else {
+                    playBtn.innerText = "NO DISPONIBLE";
+                    playBtn.disabled = true;
+                    playBtn.style.opacity = "0.5";
+                }
+
+                const fBtn = document.getElementById('m-fav-btn');
+                fBtn.onclick = () => { favs.toggle(id); favs.updateIcon(fBtn.querySelector('span'), id); };
+                favs.updateIcon(fBtn.querySelector('span'), id);
+            } catch (e) { console.error(e); }
+        },
+
+        openPlayer(url) {
+            const playerView = document.getElementById('m-player-view');
+            playerView.classList.remove('hidden');
+            
+            // Setear Info en el Player Overlay
+            if(currentMovieData) {
+                document.getElementById('p-overlay-title').innerText = currentMovieData.title;
+                document.getElementById('p-overlay-year').innerText = currentMovieData.release_date.split('-')[0];
+                document.getElementById('p-overlay-studio').innerText = currentMovieData.studio;
+                document.getElementById('p-overlay-rate').innerText = currentMovieData.vote_average.toFixed(1);
+                
+                // Links de reporte con asunto prellenado
+                const subject = encodeURIComponent(`Reporte: ${currentMovieData.title} (ID: ${currentMovieData.id})`);
+                document.getElementById('btn-report-email').href = `mailto:support@cineflux.com?subject=${subject}&body=El video no funciona...`;
+                document.getElementById('btn-report-tg').href = `https://t.me/cinefluxsupport?start=${currentMovieData.id}`;
             }
 
-            favs.updateIcon('m-fav-btn', id, true);
-            document.getElementById('m-fav-btn').onclick = () => { favs.toggle(id); };
-        },
-        openPlayer(url) {
-            document.getElementById('m-info-view').classList.add('hidden');
-            document.getElementById('m-player-view').classList.remove('hidden');
-            
-            const frame = document.getElementById('vEngine');
-            frame.src = url;
-            
-            // --- MÉTODO A: NEUTRALIZADOR DE CLICS (CAPA 4) ---
-            let clickCount = 0;
-            const shield = document.createElement('div');
-            shield.id = "click-interceptor";
-            shield.style = "position:absolute; top:0; left:0; width:100%; height:100%; z-index:9999; cursor:pointer;";
-            
-            document.getElementById('m-player-view').appendChild(shield);
+            const iframe = document.getElementById('vEngine');
+            iframe.src = url;
 
-            shield.addEventListener('mousedown', (e) => {
-                clickCount++;
-                if(clickCount <= 1) { 
-                    // Primer clic bloqueado (Publicidad de Streamwish)
-                    e.stopPropagation();
-                    e.preventDefault();
-                    console.log("Capa 4: Intento de Click Hijacking bloqueado.");
-                    // Removemos el escudo tras el primer bloqueo para permitir el Play real
-                    setTimeout(() => shield.remove(), 100); 
-                }
-            }, true);
+            // Intentar Fullscreen
+            if (playerView.requestFullscreen) playerView.requestFullscreen();
+            else if (playerView.webkitRequestFullscreen) playerView.webkitRequestFullscreen();
         },
+
         closePlayer() {
-            document.getElementById('m-info-view').classList.remove('hidden');
-            document.getElementById('m-player-view').classList.add('hidden');
             document.getElementById('vEngine').src = "";
-            const shield = document.getElementById('click-interceptor');
-            if(shield) shield.remove();
+            document.getElementById('m-player-view').classList.add('hidden');
+            if (document.exitFullscreen) document.exitFullscreen();
+            document.getElementById('report-menu').classList.remove('open'); // cerrar burbuja si estaba abierta
         },
+
         closeModal() {
             this.closePlayer();
             document.getElementById('m-movie').style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-    };
-
-    const ui = {
-        initTelemetry() {
-            const clock = () => {
-                const now = new Date();
-                if(document.getElementById('sys-time')) document.getElementById('sys-time').innerText = now.toLocaleTimeString();
-            };
-            setInterval(clock, 1000); clock();
-
-            const last = localStorage.getItem('ghost_last_login');
-            if(last && document.getElementById('sys-last')) document.getElementById('sys-last').innerText = last;
+            document.body.style.overflow = 'auto'; // Restaurar scroll
         },
-        // --- CAPA 4: MÉTODO A (INYECCIÓN DE PROXY) ---
-        injectLayer4() {
-            // Sobrescribir window.open con un Proxy vacío para engañar a los ads
-            window.open = function() {
-                console.warn("Cineflux: Pop-up neutralizado.");
-                return { focus: () => {}, close: () => {} }; 
+
+        toggleReport() {
+            document.getElementById('report-menu').classList.toggle('open');
+        },
+
+        async shareMovie() {
+            if(!currentMovieData) return;
+            const shareData = {
+                title: `Ver ${currentMovieData.title} en CineFlux`,
+                text: `¡Mira esta película: ${currentMovieData.title}!`,
+                url: CONTENT_LINKS[currentMovieData.id] || window.location.href
             };
-            
-            // Bloquear cambios de location si no vienen del usuario
-            const originalAssign = window.location.assign;
-            window.onbeforeunload = function() {
-                if (document.activeElement.tagName === "IFRAME") {
-                    return "Cineflux detectó un intento de redirección. ¿Deseas quedarte?";
-                }
-            };
+
+            if (navigator.share) {
+                try { await navigator.share(shareData); } 
+                catch (err) { console.log('Error sharing', err); }
+            } else {
+                // Fallback: Copiar al portapapeles
+                navigator.clipboard.writeText(shareData.url).then(() => {
+                    alert('Enlace copiado al portapapeles');
+                });
+            }
+        },
+
+        async search(q) {
+            const grid = document.getElementById('search-grid');
+            if(q.length < 3) { grid.innerHTML = ""; return; }
+            try {
+                const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${q}&language=es-MX`).then(res => res.json());
+                grid.innerHTML = r.results.map(m => this.createCard(m)).join('');
+            } catch(e) {}
+        },
+
+        reset() {
+            if(confirm("¿Estás seguro? Se borrarán tus favoritos y ajustes.")) {
+                localStorage.clear();
+                location.reload();
+            }
         }
     };
 
     const favs = {
         list: JSON.parse(localStorage.getItem('ghost_favs')) || [],
+        init() { this.render(); },
         toggle(id) {
-            if(this.list.includes(id)) {
-                this.list = this.list.filter(x => x !== id);
-            } else {
-                this.list.push(id);
-            }
+            if(this.list.includes(id)) this.list = this.list.filter(x => x !== id);
+            else this.list.push(id);
             localStorage.setItem('ghost_favs', JSON.stringify(this.list));
-            this.updateIcon('m-fav-btn', id, true);
-            this.updateIcon('hero-fav-icon', id);
             this.render();
+            favs.updateIcon(document.getElementById('hero-fav-icon'), id);
         },
-        updateIcon(elId, id, isModal = false) {
-            const el = document.getElementById(elId);
+        updateIcon(el, id) {
             if(!el) return;
             const isFav = this.list.includes(id);
-            const icon = isFav ? 'check' : 'add';
-            if(isModal) el.innerHTML = `<span class="material-symbols-rounded">${icon}</span>`;
-            else el.innerText = icon;
+            el.innerText = isFav ? 'check' : 'add';
+            el.style.color = isFav ? '#3b82f6' : '#fff';
         },
         async render() {
+            const row = document.getElementById('fav-row');
             const cont = document.getElementById('fav-container');
-            if(!cont) return;
-            if(this.list.length === 0) {
-                document.getElementById('fav-row').classList.add('hidden');
-                cont.innerHTML = "";
-                return;
-            }
-            document.getElementById('fav-row').classList.remove('hidden');
-            cont.innerHTML = '';
+            if(this.list.length === 0) { row.classList.add('hidden'); return; }
+            row.classList.remove('hidden');
+            cont.innerHTML = "";
             for(const id of this.list) {
-                try {
-                    const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}`).then(r => r.json());
-                    if(m.poster_path) {
-                        cont.innerHTML += `<div class="card" onclick="app.openModal(${id})"><img src="https://image.tmdb.org/t/p/w200${m.poster_path}"></div>`;
-                    }
-                } catch(e) {}
+                const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json());
+                cont.innerHTML += `<div class="card" onclick="app.openModal(${id})"><img src="https://image.tmdb.org/t/p/w300${m.poster_path}"></div>`;
             }
+        }
+    };
+
+    const ui = {
+        async init() {
+            // RELOJ EN TIEMPO REAL
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('sys-time').innerText = now.toLocaleTimeString();
+                
+                // Cronómetro de sesión
+                const diff = Date.now() - appStartTime;
+                const h = Math.floor(diff / 3600000).toString().padStart(2,'0');
+                const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2,'0');
+                const s = Math.floor((diff % 60000) / 1000).toString().padStart(2,'0');
+                document.getElementById('sys-timer').innerText = `${h}:${m}:${s}`;
+            }, 1000);
+
+            // DETECCIÓN DE PAÍS (API GRATUITA)
+            try {
+                const ipData = await fetch('https://ipapi.co/json/').then(r => r.json());
+                document.getElementById('sys-country').innerText = ipData.country_name || "Desconocido";
+            } catch(e) {
+                document.getElementById('sys-country').innerText = "Error Red";
+            }
+
+            // Tema cargado
+            const savedTheme = localStorage.getItem('app_theme') || 'dark';
+            this.setTheme(savedTheme);
+            document.getElementById('theme-selector').value = savedTheme;
+        },
+        setTheme(t) {
+            document.body.className = t + '-mode';
+            localStorage.setItem('app_theme', t);
         }
     };
 
     const profile = {
         init() {
-            const saved = localStorage.getItem('ghost_user');
-            const data = saved ? JSON.parse(saved) : { name: "Bienvenido", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ghost" };
-            const input = document.getElementById('p-name-input');
-            if(input) {
-                input.value = data.name;
-                input.oninput = (e) => { 
-                    data.name = e.target.value || "Bienvenido"; 
-                    localStorage.setItem('ghost_user', JSON.stringify(data)); 
-                };
-            }
-            document.getElementById('p-img').src = data.img;
-            document.getElementById('nav-pfp').src = data.img;
+            const n = localStorage.getItem('p_name') || "";
+            const img = localStorage.getItem('p_img') || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix";
+            
+            // Establecer valores
+            document.getElementById('p-name-input').value = n;
+            document.getElementById('p-img').src = img;
+            document.getElementById('nav-pfp').src = img;
+
+            // EVENTO INPUT (Guardado en tiempo real)
+            document.getElementById('p-name-input').addEventListener('input', (e) => {
+                localStorage.setItem('p_name', e.target.value);
+            });
+        },
+        changePhoto(e) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const b64 = reader.result;
+                localStorage.setItem('p_img', b64);
+                document.getElementById('p-img').src = b64;
+                document.getElementById('nav-pfp').src = b64;
+            };
+            if(e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
         }
     };
-
-    const security = {
-        pin: localStorage.getItem('ghost_pin'),
-        init() { if(this.pin) document.getElementById('lock-screen').classList.replace('hidden', 'flex'); },
-        unlock() {
-            if(document.getElementById('pin-field').value === this.pin) {
-                const now = new Date();
-                localStorage.setItem('ghost_last_login', now.toLocaleString());
-                document.getElementById('lock-screen').classList.replace('flex', 'hidden');
-                igniteEngine();
-            } else { alert("PIN Incorrecto"); }
-        }
-    };
-
-    function igniteEngine() {
-        const shield = document.getElementById('ghostShield');
-        if(!shield) return;
-        shield.style.opacity = '0';
-        setTimeout(() => shield.remove(), 600);
-    }
 
     app.init();
-</script>
+    </script>
 </body>
 </html>
