@@ -384,16 +384,18 @@ const DATABASE = CATALOGO.reduce((acc, m) => {
 }, {});
 
 /* ================================================================
-   MÓDULO GUARDIAN (CSS INTEGRADO + LÓGICA DE INTERCEPCIÓN)
+   MÓDULO GUARDIAN 2.0 (SANDBOX + WATCHDOG)
    ================================================================ */
 const guardian = {
+    checkInterval: null,
+    
     init() {
         const style = document.createElement('style');
         style.innerHTML = `
             .guardian-toast {
                 position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-200%);
                 background: rgba(10, 15, 25, 0.95); backdrop-filter: blur(12px);
-                border: 1px solid #3b82f6; border-left: 5px solid #3b82f6;
+                border: 1px solid #ef4444; border-left: 5px solid #ef4444; /* Rojo alerta */
                 padding: 15px 25px; border-radius: 14px;
                 display: flex; align-items: center; gap: 15px;
                 box-shadow: 0 20px 40px rgba(0,0,0,0.6);
@@ -401,7 +403,8 @@ const guardian = {
                 opacity: 0; pointer-events: none; min-width: 320px;
             }
             .guardian-toast.active { transform: translateX(-50%) translateY(0); opacity: 1; }
-            .g-icon { color: #3b82f6; font-size: 24px; animation: pulseG 1.5s infinite; }
+            .guardian-toast.success { border-color: #3b82f6; border-left-color: #3b82f6; }
+            .g-icon { color: inherit; font-size: 24px; animation: pulseG 1.5s infinite; }
             @keyframes pulseG { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
             
             #guardian-shield {
@@ -413,6 +416,7 @@ const guardian = {
                 background: #3b82f6; color: white; padding: 6px 14px;
                 border-radius: 20px; font-size: 11px; font-weight: 800;
                 text-transform: uppercase; opacity: 0; transition: 0.3s;
+                box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
             }
             #guardian-shield:active .shield-label { opacity: 1; }
         `;
@@ -420,22 +424,37 @@ const guardian = {
 
         const toast = document.createElement('div');
         toast.id = 'guardian-toast';
-        toast.className = 'guardian-toast';
+        toast.className = 'guardian-toast success';
         toast.innerHTML = `
-            <span class="material-symbols-rounded g-icon">security</span>
+            <span class="material-symbols-rounded g-icon" id="g-icon">security</span>
             <div>
                 <div style="color:white; font-size:13px; font-weight:900; margin-bottom:2px">CINEFLUX GUARDIAN</div>
-                <div id="g-text" style="color:#94a3b8; font-size:11px">Analizando integridad del stream...</div>
+                <div id="g-text" style="color:#cbd5e1; font-size:11px">Analizando integridad del stream...</div>
             </div>
         `;
         document.body.appendChild(toast);
+        
+        // Watchdog: Detecta si perdemos el foco (señal de popup)
+        window.addEventListener('blur', () => {
+            if(!document.getElementById('m-player-view').classList.contains('hidden')) {
+                console.warn("Guardian: Foco perdido, posible popup intentando abrirse.");
+            }
+        });
     },
-    notify(msg) {
+    
+    notify(msg, type = 'success') {
         const t = document.getElementById('guardian-toast');
+        const icon = document.getElementById('g-icon');
+        
+        t.className = `guardian-toast active ${type}`;
         document.getElementById('g-text').innerText = msg;
-        t.classList.add('active');
-        if(navigator.vibrate) navigator.vibrate(50);
-        setTimeout(() => t.classList.remove('active'), 3500);
+        icon.innerText = type === 'success' ? 'security' : 'gpp_bad'; // Icono cambia si es alerta
+        
+        if(navigator.vibrate) navigator.vibrate(type === 'error' ? [50, 50, 50] : 50);
+        
+        // Limpiar timeout anterior si existe para evitar conflictos
+        if(this.timer) clearTimeout(this.timer);
+        this.timer = setTimeout(() => t.classList.remove('active'), 4000);
     }
 };
 
@@ -449,7 +468,7 @@ const app = {
         profile.init();
         favs.init();
         ui.init();
-        guardian.init(); // Iniciar sistema de seguridad
+        guardian.init(); 
         window.addEventListener('scroll', () => this.handleScroll(), { passive: true });
     },
 
@@ -593,13 +612,12 @@ const app = {
     },
 
     /* ================================================================
-       REPRODUCTOR REFORZADO (ESTILO 1DM)
+       REPRODUCTOR REFORZADO (MAXIMUM SECURITY)
        ================================================================ */
     openPlayer(url) {
         const playerView = document.getElementById('m-player-view');
         playerView.classList.remove('hidden');
         
-        // Data overlay
         if(currentMovieData) {
             document.getElementById('p-overlay-title').innerText = currentMovieData.title;
             document.getElementById('p-overlay-year').innerText = currentMovieData.release_date.split('-')[0];
@@ -611,46 +629,65 @@ const app = {
         }
 
         const container = document.querySelector('.viewport-container');
-        // REINICIO TOTAL DEL CONTENEDOR
         container.innerHTML = ''; 
 
-        // 1. EL ESCUDO DE INTERCEPCIÓN (Capta el primer toque sucio)
+        // 1. ESCUDO DE INTERCEPCIÓN
         const shield = document.createElement('div');
         shield.id = 'guardian-shield';
-        shield.innerHTML = '<div class="shield-label">Preparando canal seguro...</div>';
+        shield.innerHTML = '<div class="shield-label">Estableciendo Sandbox...</div>';
         
-        // 2. EL IFRAME (Sin sandbox para no ser detectado)
+        // 2. IFRAME "ENJAULADO"
         const iframe = document.createElement('iframe');
         iframe.id = 'vEngine';
         iframe.className = 'viewport';
-        iframe.setAttribute('allow', 'autoplay; fullscreen');
+        
+        // --- AQUÍ ESTÁ LA MAGIA DE SEGURIDAD ---
+        
+        // A. Sandbox Attribute: La defensa principal.
+        // allow-scripts: Necesario para que el video cargue.
+        // allow-same-origin: Necesario para algunos players.
+        // allow-presentation: Permite pantalla completa.
+        // FALTA: 'allow-popups' y 'allow-top-navigation'. Al quitarlos, BLOQUEAMOS los anuncios externos.
+        iframe.setAttribute('sandbox', 'allow-forms allow-scripts allow-same-origin allow-presentation allow-orientation-lock');
+        
+        // B. Referrer Policy: Ocultamos de dónde viene la petición.
+        iframe.setAttribute('referrerpolicy', 'no-referrer');
+        
+        // C. Permissions Policy: Bloqueamos acceso a hardware y APIs sensibles.
+        iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
+        
         iframe.setAttribute('frameborder', '0');
-        iframe.src = url;
+        
+        // Retrasamos la carga de la URL hasta que el escudo se cree
+        iframe.src = "about:blank"; 
 
         container.appendChild(shield);
         container.appendChild(iframe);
 
         // Lógica de "Limpieza de Canal"
         shield.onclick = () => {
-            guardian.notify("INTENTO DE REDIRECCIÓN BLOQUEADO");
+            // Cargamos la URL real SOLO al hacer click, no antes (ahorra datos y evita trackers tempranos)
+            if(iframe.src === "about:blank") {
+                iframe.src = url;
+            }
+
+            guardian.notify("ESCUDO ACTIVO: REDIRECCIONES BLOQUEADAS", "success");
             shield.style.transition = "opacity 0.6s";
             shield.style.opacity = "0";
             
-            // Después de 0.8s el escudo desaparece y el usuario puede dar Play real
             setTimeout(() => {
                 shield.remove();
-                guardian.notify("CANAL SEGURO: PUEDES REPRODUCIR");
+                // Nota: Algunos embeds intentan abrir popups al primer click REAL en el iframe.
+                // El atributo 'sandbox' impedirá que se abran.
             }, 800);
         };
 
-        // Anti-salida de la página
         window.onbeforeunload = () => "Guardian Activo: ¿Deseas salir del reproductor?";
 
         if (playerView.requestFullscreen) playerView.requestFullscreen();
     },
 
     closePlayer() {
-        // DESTRUCCIÓN DEL IFRAME para matar el proceso y audio
         document.querySelector('.viewport-container').innerHTML = ''; 
         document.getElementById('m-player-view').classList.add('hidden');
         window.onbeforeunload = null;
