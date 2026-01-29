@@ -355,396 +355,401 @@
     </nav>
 
     <script>
-    const TMDB_KEY = 'b6083b855479a79fd9acdb0a2789f126';
-    let lastScrollTop = 0;
-    let appStartTime = Date.now();
-    let currentMovieData = null; // Para guardar datos para el player
+    /* ================================================================
+   CONFIGURACIÓN Y DATOS (CINEFLUX OS)
+   ================================================================ */
+const TMDB_KEY = 'b6083b855479a79fd9acdb0a2789f126';
+let lastScrollTop = 0;
+let appStartTime = Date.now();
+let currentMovieData = null; 
 
-    // URLs de ejemplo (Reemplaza con tus enlaces reales si es necesario)
-    const CATALOGO = [
-        { id: 1522377, link: "https://hgplaycdn.com/e/27tc341hgd98", categoria: "Estreno" },
-        { id: 1180831, link: "https://hgplaycdn.com/e/27tc341hgd98", categoria: "Estreno" },
-        { id: 1547050, link: "https://yuguaab.com/e/3urdbixpgqjr", categoria: "Estreno" },
-        { id: 1242898, link: "https://vimeos.net/embed-gifb0mvp14aw.html", categoria: "Estreno" },
-        { id: 533535, link: "https://vimeos.net/embed-gifb0mvp14aw.html", categoria: "Estreno" }, // Deadpool & Wolverine (Ejemplo ID real)
-        { id: 1084242, link: "https://vimeos.net/embed-mjskmrhlb91i.html", categoria: "Estreno" },
-        { id: 1387382, link: "https://player.cuevana.is/player.php?h=rxPRsRSX4IlkyS1F21W5j1LWaxDrSlOWwDzFztiv8jRa0TKuAj7i3ipYgfIdutaO", categoria: "Acción" },
-        { id: 1556834, link: "https://vimeos.net/embed-4pahvxfpu00m.html", categoria: "Acción" },
-        { id: 426063, link: "https://vimeos.net/embed-wuozbsxutkuj.html", categoria: "Terror" },
-        { id: 1197137, link: "https://vimeos.net/embed-xjc6uuujzzax.html", categoria: "Terror" }
-    ];
+const CATALOGO = [
+    { id: 1522377, link: "https://hgplaycdn.com/e/27tc341hgd98", categoria: "Estreno" },
+    { id: 1180831, link: "https://hgplaycdn.com/e/27tc341hgd98", categoria: "Estreno" },
+    { id: 1547050, link: "https://yuguaab.com/e/3urdbixpgqjr", categoria: "Estreno" },
+    { id: 1242898, link: "https://vimeos.net/embed-gifb0mvp14aw.html", categoria: "Estreno" },
+    { id: 533535, link: "https://vimeos.net/embed-gifb0mvp14aw.html", categoria: "Estreno" },
+    { id: 1084242, link: "https://vimeos.net/embed-mjskmrhlb91i.html", categoria: "Estreno" },
+    { id: 1387382, link: "https://player.cuevana.is/player.php?h=rxPRsRSX4IlkyS1F21W5j1LWaxDrSlOWwDzFztiv8jRa0TKuAj7i3ipYgfIdutaO", categoria: "Acción" },
+    { id: 1556834, link: "https://vimeos.net/embed-4pahvxfpu00m.html", categoria: "Acción" },
+    { id: 426063, link: "https://vimeos.net/embed-wuozbsxutkuj.html", categoria: "Terror" },
+    { id: 1197137, link: "https://vimeos.net/embed-xjc6uuujzzax.html", categoria: "Terror" }
+];
 
-    const CONTENT_LINKS = Object.fromEntries(CATALOGO.map(m => [m.id, m.link]));
-    const DATABASE = CATALOGO.reduce((acc, m) => {
-        if (!acc[m.categoria]) acc[m.categoria] = [];
-        acc[m.categoria].push(m.id);
-        return acc;
-    }, {});
+const CONTENT_LINKS = Object.fromEntries(CATALOGO.map(m => [m.id, m.link]));
+const DATABASE = CATALOGO.reduce((acc, m) => {
+    if (!acc[m.categoria]) acc[m.categoria] = [];
+    acc[m.categoria].push(m.id);
+    return acc;
+}, {});
 
-    const app = {
-        init() {
-            this.renderHome();
-            this.renderTabs();
-            profile.init();
-            favs.init();
-            ui.init();
-            
-            // Listener de Scroll Optimizado
-            window.addEventListener('scroll', () => this.handleScroll(), { passive: true });
-        },
-
-        handleScroll() {
-            const st = window.pageYOffset || document.documentElement.scrollTop;
-            const body = document.body;
-            
-            if (st > lastScrollTop && st > 50) {
-                // Bajando: Ocultar
-                body.classList.add('scroll-down');
-            } else {
-                // Subiendo: Mostrar
-                body.classList.remove('scroll-down');
+/* ================================================================
+   MÓDULO GUARDIAN (CSS INTEGRADO + LÓGICA DE INTERCEPCIÓN)
+   ================================================================ */
+const guardian = {
+    init() {
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .guardian-toast {
+                position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-200%);
+                background: rgba(10, 15, 25, 0.95); backdrop-filter: blur(12px);
+                border: 1px solid #3b82f6; border-left: 5px solid #3b82f6;
+                padding: 15px 25px; border-radius: 14px;
+                display: flex; align-items: center; gap: 15px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+                z-index: 10000; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                opacity: 0; pointer-events: none; min-width: 320px;
             }
-            lastScrollTop = st <= 0 ? 0 : st;
-        },
-
-        renderTabs() {
-            const menu = document.getElementById('tabs-menu');
-            const categories = ["Inicio", ...Object.keys(DATABASE)];
-            menu.innerHTML = categories.map((cat, i) => `
-                <div class="tab-item ${i===0?'active':''}" onclick="app.filterCat(this, '${cat}')">${cat}</div>
-            `).join('');
-        },
-
-        filterCat(el, cat) {
-            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-            el.classList.add('active');
+            .guardian-toast.active { transform: translateX(-50%) translateY(0); opacity: 1; }
+            .g-icon { color: #3b82f6; font-size: 24px; animation: pulseG 1.5s infinite; }
+            @keyframes pulseG { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
             
-            const dynamic = document.getElementById('dynamic-content');
-            const grid = document.getElementById('category-grid');
-            const hero = document.getElementById('hero');
-            const favRow = document.getElementById('fav-row');
-
-            if(cat === "Inicio") {
-                dynamic.classList.remove('hidden');
-                grid.classList.add('hidden');
-                hero.classList.remove('hidden');
-                if(favs.list.length > 0) favRow.classList.remove('hidden');
-            } else {
-                dynamic.classList.add('hidden');
-                grid.classList.remove('hidden');
-                hero.classList.add('hidden');
-                favRow.classList.add('hidden');
-                this.renderCategoryGrid(cat);
+            #guardian-shield {
+                position: absolute; inset: 0; z-index: 99;
+                background: rgba(0,0,0,0.01); cursor: pointer;
+                display: flex; align-items: center; justify-content: center;
             }
-            window.scrollTo({top: 0, behavior: 'smooth'});
-        },
-
-        async renderCategoryGrid(cat) {
-            const grid = document.getElementById('category-grid');
-            grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Cargando catálogo...</div>';
-            const ids = DATABASE[cat] || [];
-            let html = '';
-            
-            for(const id of ids) {
-                try {
-                    const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json());
-                    html += this.createCard(m);
-                } catch(e) { console.error(e); }
+            .shield-label {
+                background: #3b82f6; color: white; padding: 6px 14px;
+                border-radius: 20px; font-size: 11px; font-weight: 800;
+                text-transform: uppercase; opacity: 0; transition: 0.3s;
             }
-            grid.innerHTML = html;
-        },
+            #guardian-shield:active .shield-label { opacity: 1; }
+        `;
+        document.head.appendChild(style);
 
-        createCard(m) {
-            const rate = m.vote_average.toFixed(1);
-            const rateColor = rate >= 7 ? 'text-green-400' : (rate >= 5 ? 'text-yellow-400' : 'text-red-400');
-            return `
-                <div class="card" onclick="app.openModal(${m.id})">
-                    <img src="https://image.tmdb.org/t/p/w500${m.poster_path}" loading="lazy">
-                    <div class="rating-badge">
-                        <span class="material-symbols-rounded" style="font-size:10px">star</span>
-                        <span class="${rateColor}">${rate}</span>
-                    </div>
-                </div>`;
-        },
+        const toast = document.createElement('div');
+        toast.id = 'guardian-toast';
+        toast.className = 'guardian-toast';
+        toast.innerHTML = `
+            <span class="material-symbols-rounded g-icon">security</span>
+            <div>
+                <div style="color:white; font-size:13px; font-weight:900; margin-bottom:2px">CINEFLUX GUARDIAN</div>
+                <div id="g-text" style="color:#94a3b8; font-size:11px">Analizando integridad del stream...</div>
+            </div>
+        `;
+        document.body.appendChild(toast);
+    },
+    notify(msg) {
+        const t = document.getElementById('guardian-toast');
+        document.getElementById('g-text').innerText = msg;
+        t.classList.add('active');
+        if(navigator.vibrate) navigator.vibrate(50);
+        setTimeout(() => t.classList.remove('active'), 3500);
+    }
+};
 
-        nav(id, el) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.getElementById(`v-${id}`).classList.add('active');
-            if(el) el.classList.add('active');
-            
-            const tabs = document.getElementById('tabs-menu');
-            tabs.style.display = (id === 'home') ? 'flex' : 'none';
-            window.scrollTo(0,0);
-        },
+/* ================================================================
+   CORE APP
+   ================================================================ */
+const app = {
+    init() {
+        this.renderHome();
+        this.renderTabs();
+        profile.init();
+        favs.init();
+        ui.init();
+        guardian.init(); // Iniciar sistema de seguridad
+        window.addEventListener('scroll', () => this.handleScroll(), { passive: true });
+    },
 
-        async renderHome() {
-            const container = document.getElementById('dynamic-content');
-            container.innerHTML = "";
-            for (const [title, ids] of Object.entries(DATABASE)) {
-                const row = document.createElement('div');
-                row.innerHTML = `<h2 class="section-title">${title}</h2><div id="row-${title.replace(/\s/g,'')}" class="h-scroll"></div>`;
-                container.appendChild(row);
-                const el = document.getElementById(`row-${title.replace(/\s/g,'')}`);
-                
-                // Carga paralela para velocidad
-                const promises = ids.map(id => fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()));
-                const movies = await Promise.all(promises);
-                
-                el.innerHTML = movies.map(m => this.createCard(m)).join('');
-            }
-            this.initHero();
-        },
+    handleScroll() {
+        const st = window.pageYOffset || document.documentElement.scrollTop;
+        if (st > lastScrollTop && st > 50) document.body.classList.add('scroll-down');
+        else document.body.classList.remove('scroll-down');
+        lastScrollTop = st <= 0 ? 0 : st;
+    },
 
-        async initHero() {
-            // Seleccionar aleatorio del catálogo
-            const allIds = [].concat(...Object.values(DATABASE));
-            const randomId = allIds[Math.floor(Math.random() * allIds.length)];
-            
-            try {
-                const d = await fetch(`https://api.themoviedb.org/3/movie/${randomId}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json());
-                const c = await fetch(`https://api.themoviedb.org/3/movie/${randomId}/credits?api_key=${TMDB_KEY}`).then(r => r.json());
-                const company = d.production_companies[0]?.name || 'Studio';
+    renderTabs() {
+        const menu = document.getElementById('tabs-menu');
+        const categories = ["Inicio", ...Object.keys(DATABASE)];
+        menu.innerHTML = categories.map((cat, i) => `
+            <div class="tab-item ${i===0?'active':''}" onclick="app.filterCat(this, '${cat}')">${cat}</div>
+        `).join('');
+    },
 
-                document.getElementById('hero').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.poster_path})`; // Poster para móvil se ve mejor a veces, o backdrop
-                // Usamos backdrop si es desktop, o object-cover
-                document.getElementById('hero').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
+    filterCat(el, cat) {
+        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        const dynamic = document.getElementById('dynamic-content');
+        const grid = document.getElementById('category-grid');
+        const hero = document.getElementById('hero');
+        const favRow = document.getElementById('fav-row');
 
-                document.getElementById('hero-title').innerText = d.title;
-                document.getElementById('hero-year').innerText = d.release_date.split('-')[0];
-                document.getElementById('hero-rating').innerHTML = `<span class="material-symbols-rounded text-sm">star</span> ${d.vote_average.toFixed(1)}`;
-                document.getElementById('hero-studio').innerText = company;
-                document.getElementById('hero-sinopsis').innerText = d.overview;
-                document.getElementById('hero-play').onclick = () => this.openModal(randomId);
-                
-                const favBtn = document.getElementById('hero-fav-btn-action');
-                favBtn.onclick = () => favs.toggle(randomId);
-                favs.updateIcon(document.getElementById('hero-fav-icon'), randomId);
-            } catch(e) { console.log("Error cargando Hero", e); }
-        },
-
-        async openModal(id) {
-            const mod = document.getElementById('m-movie');
-            mod.style.display = 'block';
-            document.body.style.overflow = 'hidden'; // Bloquear scroll de fondo
-            
-            // Reset UI
-            document.getElementById('m-play-btn').innerText = "CARGANDO...";
-            document.getElementById('m-title').innerText = "Cargando...";
-
-            try {
-                const [d, c] = await Promise.all([
-                    fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()),
-                    fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${TMDB_KEY}`).then(r => r.json())
-                ]);
-
-                currentMovieData = { ...d, studio: d.production_companies[0]?.name || 'N/A' }; // Guardar para el player
-
-                document.getElementById('m-banner').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
-                document.getElementById('m-title').innerText = d.title;
-                document.getElementById('m-rate-badge').innerText = d.vote_average.toFixed(1);
-                document.getElementById('m-year').innerText = d.release_date.split('-')[0];
-                document.getElementById('m-runtime').innerText = `${d.runtime} MIN`;
-                document.getElementById('m-studio').innerText = currentMovieData.studio;
-                document.getElementById('m-plot').innerText = d.overview || "Sin descripción disponible.";
-                
-                document.getElementById('m-dir').innerText = c.crew.find(p => p.job === 'Director')?.name || 'Desconocido';
-                document.getElementById('m-revenue').innerText = d.revenue > 0 ? `$${(d.revenue/1e6).toFixed(1)}M` : 'N/A';
-
-                document.getElementById('m-cast').innerHTML = c.cast.slice(0,8).map(a => `
-                    <div class="flex-shrink-0 text-center w-16">
-                        <img src="${a.profile_path?'https://image.tmdb.org/t/p/w200'+a.profile_path:'https://ui-avatars.com/api/?name='+a.name}" class="w-12 h-12 rounded-full mx-auto object-cover border border-white/20 mb-2">
-                        <p class="text-[9px] leading-tight font-bold text-gray-400 truncate">${a.name}</p>
-                    </div>
-                `).join('');
-
-                const playBtn = document.getElementById('m-play-btn');
-                if(CONTENT_LINKS[id]) {
-                    playBtn.onclick = () => this.openPlayer(CONTENT_LINKS[id]);
-                    playBtn.innerHTML = '<span class="material-symbols-rounded fill-1">play_arrow</span> REPRODUCIR AHORA';
-                    playBtn.disabled = false;
-                    playBtn.style.opacity = "1";
-                } else {
-                    playBtn.innerText = "NO DISPONIBLE";
-                    playBtn.disabled = true;
-                    playBtn.style.opacity = "0.5";
-                }
-
-                const fBtn = document.getElementById('m-fav-btn');
-                fBtn.onclick = () => { favs.toggle(id); favs.updateIcon(fBtn.querySelector('span'), id); };
-                favs.updateIcon(fBtn.querySelector('span'), id);
-            } catch (e) { console.error(e); }
-        },
-
-        openPlayer(url) {
-            const playerView = document.getElementById('m-player-view');
-            playerView.classList.remove('hidden');
-            
-            // Setear Info en el Player Overlay
-            if(currentMovieData) {
-                document.getElementById('p-overlay-title').innerText = currentMovieData.title;
-                document.getElementById('p-overlay-year').innerText = currentMovieData.release_date.split('-')[0];
-                document.getElementById('p-overlay-studio').innerText = currentMovieData.studio;
-                document.getElementById('p-overlay-rate').innerText = currentMovieData.vote_average.toFixed(1);
-                
-                // Links de reporte con asunto prellenado
-                const subject = encodeURIComponent(`Reporte: ${currentMovieData.title} (ID: ${currentMovieData.id})`);
-                document.getElementById('btn-report-email').href = `mailto:support@cineflux.com?subject=${subject}&body=El video no funciona...`;
-                document.getElementById('btn-report-tg').href = `https://t.me/cinefluxsupport?start=${currentMovieData.id}`;
-            }
-
-            const iframe = document.getElementById('vEngine');
-            iframe.src = url;
-
-            // Intentar Fullscreen
-            if (playerView.requestFullscreen) playerView.requestFullscreen();
-            else if (playerView.webkitRequestFullscreen) playerView.webkitRequestFullscreen();
-        },
-
-        closePlayer() {
-            document.getElementById('vEngine').src = "";
-            document.getElementById('m-player-view').classList.add('hidden');
-            if (document.exitFullscreen) document.exitFullscreen();
-            document.getElementById('report-menu').classList.remove('open'); // cerrar burbuja si estaba abierta
-        },
-
-        closeModal() {
-            this.closePlayer();
-            document.getElementById('m-movie').style.display = 'none';
-            document.body.style.overflow = 'auto'; // Restaurar scroll
-        },
-
-        toggleReport() {
-            document.getElementById('report-menu').classList.toggle('open');
-        },
-
-        async shareMovie() {
-            if(!currentMovieData) return;
-            const shareData = {
-                title: `Ver ${currentMovieData.title} en CineFlux`,
-                text: `¡Mira esta película: ${currentMovieData.title}!`,
-                url: CONTENT_LINKS[currentMovieData.id] || window.location.href
-            };
-
-            if (navigator.share) {
-                try { await navigator.share(shareData); } 
-                catch (err) { console.log('Error sharing', err); }
-            } else {
-                // Fallback: Copiar al portapapeles
-                navigator.clipboard.writeText(shareData.url).then(() => {
-                    alert('Enlace copiado al portapapeles');
-                });
-            }
-        },
-
-        async search(q) {
-            const grid = document.getElementById('search-grid');
-            if(q.length < 3) { grid.innerHTML = ""; return; }
-            try {
-                const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${q}&language=es-MX`).then(res => res.json());
-                grid.innerHTML = r.results.map(m => this.createCard(m)).join('');
-            } catch(e) {}
-        },
-
-        reset() {
-            if(confirm("¿Estás seguro? Se borrarán tus favoritos y ajustes.")) {
-                localStorage.clear();
-                location.reload();
-            }
+        if(cat === "Inicio") {
+            dynamic.classList.remove('hidden');
+            grid.classList.add('hidden');
+            hero.classList.remove('hidden');
+            if(favs.list.length > 0) favRow.classList.remove('hidden');
+        } else {
+            dynamic.classList.add('hidden');
+            grid.classList.remove('hidden');
+            hero.classList.add('hidden');
+            favRow.classList.add('hidden');
+            this.renderCategoryGrid(cat);
         }
-    };
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    },
 
-    const favs = {
-        list: JSON.parse(localStorage.getItem('ghost_favs')) || [],
-        init() { this.render(); },
-        toggle(id) {
-            if(this.list.includes(id)) this.list = this.list.filter(x => x !== id);
-            else this.list.push(id);
-            localStorage.setItem('ghost_favs', JSON.stringify(this.list));
-            this.render();
-            favs.updateIcon(document.getElementById('hero-fav-icon'), id);
-        },
-        updateIcon(el, id) {
-            if(!el) return;
-            const isFav = this.list.includes(id);
-            el.innerText = isFav ? 'check' : 'add';
-            el.style.color = isFav ? '#3b82f6' : '#fff';
-        },
-        async render() {
-            const row = document.getElementById('fav-row');
-            const cont = document.getElementById('fav-container');
-            if(this.list.length === 0) { row.classList.add('hidden'); return; }
-            row.classList.remove('hidden');
-            cont.innerHTML = "";
-            for(const id of this.list) {
+    async renderCategoryGrid(cat) {
+        const grid = document.getElementById('category-grid');
+        grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Cargando...</div>';
+        const ids = DATABASE[cat] || [];
+        let html = '';
+        for(const id of ids) {
+            try {
                 const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json());
-                cont.innerHTML += `<div class="card" onclick="app.openModal(${id})"><img src="https://image.tmdb.org/t/p/w300${m.poster_path}"></div>`;
-            }
+                html += this.createCard(m);
+            } catch(e) {}
         }
-    };
+        grid.innerHTML = html;
+    },
 
-    const ui = {
-        async init() {
-            // RELOJ EN TIEMPO REAL
-            setInterval(() => {
-                const now = new Date();
-                document.getElementById('sys-time').innerText = now.toLocaleTimeString();
-                
-                // Cronómetro de sesión
-                const diff = Date.now() - appStartTime;
-                const h = Math.floor(diff / 3600000).toString().padStart(2,'0');
-                const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2,'0');
-                const s = Math.floor((diff % 60000) / 1000).toString().padStart(2,'0');
-                document.getElementById('sys-timer').innerText = `${h}:${m}:${s}`;
-            }, 1000);
+    createCard(m) {
+        const rate = m.vote_average.toFixed(1);
+        const rateColor = rate >= 7 ? 'text-green-400' : (rate >= 5 ? 'text-yellow-400' : 'text-red-400');
+        return `<div class="card" onclick="app.openModal(${m.id})">
+            <img src="https://image.tmdb.org/t/p/w500${m.poster_path}" loading="lazy">
+            <div class="rating-badge"><span class="material-symbols-rounded" style="font-size:10px">star</span><span class="${rateColor}">${rate}</span></div>
+        </div>`;
+    },
 
-            // DETECCIÓN DE PAÍS (API GRATUITA)
-            try {
-                const ipData = await fetch('https://ipapi.co/json/').then(r => r.json());
-                document.getElementById('sys-country').innerText = ipData.country_name || "Desconocido";
-            } catch(e) {
-                document.getElementById('sys-country').innerText = "Error Red";
-            }
+    nav(id, el) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById(`v-${id}`).classList.add('active');
+        if(el) el.classList.add('active');
+        document.getElementById('tabs-menu').style.display = (id === 'home') ? 'flex' : 'none';
+        window.scrollTo(0,0);
+    },
 
-            // Tema cargado
-            const savedTheme = localStorage.getItem('app_theme') || 'dark';
-            this.setTheme(savedTheme);
-            document.getElementById('theme-selector').value = savedTheme;
-        },
-        setTheme(t) {
-            document.body.className = t + '-mode';
-            localStorage.setItem('app_theme', t);
+    async renderHome() {
+        const container = document.getElementById('dynamic-content');
+        container.innerHTML = "";
+        for (const [title, ids] of Object.entries(DATABASE)) {
+            const row = document.createElement('div');
+            row.innerHTML = `<h2 class="section-title">${title}</h2><div id="row-${title.replace(/\s/g,'')}" class="h-scroll"></div>`;
+            container.appendChild(row);
+            const el = document.getElementById(`row-${title.replace(/\s/g,'')}`);
+            const promises = ids.map(id => fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()));
+            const movies = await Promise.all(promises);
+            el.innerHTML = movies.map(m => this.createCard(m)).join('');
         }
-    };
+        this.initHero();
+    },
 
-    const profile = {
-        init() {
-            const n = localStorage.getItem('p_name') || "";
-            const img = localStorage.getItem('p_img') || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix";
+    async initHero() {
+        const allIds = [].concat(...Object.values(DATABASE));
+        const randomId = allIds[Math.floor(Math.random() * allIds.length)];
+        try {
+            const d = await fetch(`https://api.themoviedb.org/3/movie/${randomId}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json());
+            document.getElementById('hero').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
+            document.getElementById('hero-title').innerText = d.title;
+            document.getElementById('hero-year').innerText = d.release_date.split('-')[0];
+            document.getElementById('hero-rating').innerHTML = `<span class="material-symbols-rounded text-sm">star</span> ${d.vote_average.toFixed(1)}`;
+            document.getElementById('hero-sinopsis').innerText = d.overview;
+            document.getElementById('hero-play').onclick = () => this.openModal(randomId);
+            const favBtn = document.getElementById('hero-fav-btn-action');
+            favBtn.onclick = () => favs.toggle(randomId);
+            favs.updateIcon(document.getElementById('hero-fav-icon'), randomId);
+        } catch(e) {}
+    },
+
+    async openModal(id) {
+        const mod = document.getElementById('m-movie');
+        mod.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        try {
+            const [d, c] = await Promise.all([
+                fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()),
+                fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${TMDB_KEY}`).then(r => r.json())
+            ]);
+            currentMovieData = { ...d, studio: d.production_companies[0]?.name || 'N/A' };
+            document.getElementById('m-banner').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
+            document.getElementById('m-title').innerText = d.title;
+            document.getElementById('m-rate-badge').innerText = d.vote_average.toFixed(1);
+            document.getElementById('m-year').innerText = d.release_date.split('-')[0];
+            document.getElementById('m-runtime').innerText = `${d.runtime} MIN`;
+            document.getElementById('m-studio').innerText = currentMovieData.studio;
+            document.getElementById('m-plot').innerText = d.overview || "---";
+            document.getElementById('m-dir').innerText = c.crew.find(p => p.job === 'Director')?.name || '---';
+            document.getElementById('m-revenue').innerText = d.revenue > 0 ? `$${(d.revenue/1e6).toFixed(1)}M` : 'N/A';
+            document.getElementById('m-cast').innerHTML = c.cast.slice(0,8).map(a => `<div class="flex-shrink-0 text-center w-16"><img src="${a.profile_path?'https://image.tmdb.org/t/p/w200'+a.profile_path:'https://ui-avatars.com/api/?name='+a.name}" class="w-12 h-12 rounded-full mx-auto object-cover mb-2"><p class="text-[9px] font-bold text-gray-400 truncate">${a.name}</p></div>`).join('');
+            const playBtn = document.getElementById('m-play-btn');
+            if(CONTENT_LINKS[id]) {
+                playBtn.onclick = () => this.openPlayer(CONTENT_LINKS[id]);
+                playBtn.innerHTML = '<span class="material-symbols-rounded fill-1">play_arrow</span> REPRODUCIR';
+                playBtn.disabled = false;
+                playBtn.style.opacity = "1";
+            } else {
+                playBtn.innerText = "NO DISPONIBLE";
+                playBtn.disabled = true;
+                playBtn.style.opacity = "0.5";
+            }
+            const fBtn = document.getElementById('m-fav-btn');
+            fBtn.onclick = () => { favs.toggle(id); favs.updateIcon(fBtn.querySelector('span'), id); };
+            favs.updateIcon(fBtn.querySelector('span'), id);
+        } catch (e) {}
+    },
+
+    /* ================================================================
+       REPRODUCTOR REFORZADO (ESTILO 1DM)
+       ================================================================ */
+    openPlayer(url) {
+        const playerView = document.getElementById('m-player-view');
+        playerView.classList.remove('hidden');
+        
+        // Data overlay
+        if(currentMovieData) {
+            document.getElementById('p-overlay-title').innerText = currentMovieData.title;
+            document.getElementById('p-overlay-year').innerText = currentMovieData.release_date.split('-')[0];
+            document.getElementById('p-overlay-studio').innerText = currentMovieData.studio;
+            document.getElementById('p-overlay-rate').innerText = currentMovieData.vote_average.toFixed(1);
+            const subject = encodeURIComponent(`Reporte: ${currentMovieData.title}`);
+            document.getElementById('btn-report-email').href = `mailto:support@cineflux.com?subject=${subject}`;
+            document.getElementById('btn-report-tg').href = `https://t.me/cinefluxsupport?start=${currentMovieData.id}`;
+        }
+
+        const container = document.querySelector('.viewport-container');
+        // REINICIO TOTAL DEL CONTENEDOR
+        container.innerHTML = ''; 
+
+        // 1. EL ESCUDO DE INTERCEPCIÓN (Capta el primer toque sucio)
+        const shield = document.createElement('div');
+        shield.id = 'guardian-shield';
+        shield.innerHTML = '<div class="shield-label">Preparando canal seguro...</div>';
+        
+        // 2. EL IFRAME (Sin sandbox para no ser detectado)
+        const iframe = document.createElement('iframe');
+        iframe.id = 'vEngine';
+        iframe.className = 'viewport';
+        iframe.setAttribute('allow', 'autoplay; fullscreen');
+        iframe.setAttribute('frameborder', '0');
+        iframe.src = url;
+
+        container.appendChild(shield);
+        container.appendChild(iframe);
+
+        // Lógica de "Limpieza de Canal"
+        shield.onclick = () => {
+            guardian.notify("INTENTO DE REDIRECCIÓN BLOQUEADO");
+            shield.style.transition = "opacity 0.6s";
+            shield.style.opacity = "0";
             
-            // Establecer valores
-            document.getElementById('p-name-input').value = n;
-            document.getElementById('p-img').src = img;
-            document.getElementById('nav-pfp').src = img;
+            // Después de 0.8s el escudo desaparece y el usuario puede dar Play real
+            setTimeout(() => {
+                shield.remove();
+                guardian.notify("CANAL SEGURO: PUEDES REPRODUCIR");
+            }, 800);
+        };
 
-            // EVENTO INPUT (Guardado en tiempo real)
-            document.getElementById('p-name-input').addEventListener('input', (e) => {
-                localStorage.setItem('p_name', e.target.value);
-            });
-        },
-        changePhoto(e) {
-            const reader = new FileReader();
-            reader.onload = () => {
-                const b64 = reader.result;
-                localStorage.setItem('p_img', b64);
-                document.getElementById('p-img').src = b64;
-                document.getElementById('nav-pfp').src = b64;
-            };
-            if(e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
+        // Anti-salida de la página
+        window.onbeforeunload = () => "Guardian Activo: ¿Deseas salir del reproductor?";
+
+        if (playerView.requestFullscreen) playerView.requestFullscreen();
+    },
+
+    closePlayer() {
+        // DESTRUCCIÓN DEL IFRAME para matar el proceso y audio
+        document.querySelector('.viewport-container').innerHTML = ''; 
+        document.getElementById('m-player-view').classList.add('hidden');
+        window.onbeforeunload = null;
+        if (document.exitFullscreen) document.exitFullscreen();
+        document.getElementById('report-menu').classList.remove('open');
+    },
+
+    closeModal() { this.closePlayer(); document.getElementById('m-movie').style.display = 'none'; document.body.style.overflow = 'auto'; },
+    toggleReport() { document.getElementById('report-menu').classList.toggle('open'); },
+    
+    async shareMovie() {
+        if(!currentMovieData) return;
+        const url = CONTENT_LINKS[currentMovieData.id] || window.location.href;
+        if(navigator.share) navigator.share({title: currentMovieData.title, url: url});
+        else alert("Link copiado");
+    },
+
+    async search(q) {
+        const grid = document.getElementById('search-grid');
+        if(q.length < 3) return;
+        try {
+            const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${q}&language=es-MX`).then(res => res.json());
+            grid.innerHTML = r.results.map(m => this.createCard(m)).join('');
+        } catch(e) {}
+    },
+
+    reset() { if(confirm("¿Reiniciar ajustes?")) { localStorage.clear(); location.reload(); } }
+};
+
+/* ================================================================
+   OTROS SISTEMAS
+   ================================================================ */
+const favs = {
+    list: JSON.parse(localStorage.getItem('ghost_favs')) || [],
+    init() { this.render(); },
+    toggle(id) {
+        if(this.list.includes(id)) this.list = this.list.filter(x => x !== id);
+        else this.list.push(id);
+        localStorage.setItem('ghost_favs', JSON.stringify(this.list));
+        this.render();
+        favs.updateIcon(document.getElementById('hero-fav-icon'), id);
+    },
+    updateIcon(el, id) {
+        if(!el) return;
+        const isFav = this.list.includes(id);
+        el.innerText = isFav ? 'check' : 'add';
+        el.style.color = isFav ? '#3b82f6' : '#fff';
+    },
+    async render() {
+        const row = document.getElementById('fav-row');
+        const cont = document.getElementById('fav-container');
+        if(this.list.length === 0) { row?.classList.add('hidden'); return; }
+        row?.classList.remove('hidden');
+        cont.innerHTML = "";
+        for(const id of this.list) {
+            const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json());
+            cont.innerHTML += `<div class="card" onclick="app.openModal(${id})"><img src="https://image.tmdb.org/t/p/w300${m.poster_path}"></div>`;
         }
-    };
+    }
+};
 
-    app.init();
+const ui = {
+    async init() {
+        setInterval(() => {
+            document.getElementById('sys-time').innerText = new Date().toLocaleTimeString();
+            const diff = Date.now() - appStartTime;
+            const h = Math.floor(diff / 3600000).toString().padStart(2,'0');
+            const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2,'0');
+            const s = Math.floor((diff % 60000) / 1000).toString().padStart(2,'0');
+            document.getElementById('sys-timer').innerText = `${h}:${m}:${s}`;
+        }, 1000);
+        try {
+            const ipData = await fetch('https://ipapi.co/json/').then(r => r.json());
+            document.getElementById('sys-country').innerText = ipData.country_name || "Globo";
+        } catch(e) { document.getElementById('sys-country').innerText = "Offline"; }
+        ui.setTheme(localStorage.getItem('app_theme') || 'dark');
+    },
+    setTheme(t) { document.body.className = t + '-mode'; localStorage.setItem('app_theme', t); }
+};
+
+const profile = {
+    init() {
+        document.getElementById('p-name-input').value = localStorage.getItem('p_name') || "";
+        document.getElementById('p-img').src = localStorage.getItem('p_img') || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix";
+        document.getElementById('nav-pfp').src = document.getElementById('p-img').src;
+        document.getElementById('p-name-input').addEventListener('input', (e) => localStorage.setItem('p_name', e.target.value));
+    },
+    changePhoto(e) {
+        const reader = new FileReader();
+        reader.onload = () => {
+            localStorage.setItem('p_img', reader.result);
+            document.getElementById('p-img').src = reader.result;
+            document.getElementById('nav-pfp').src = reader.result;
+        };
+        if(e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
+    }
+};
+
+app.init();
     </script>
 </body>
 </html>
