@@ -146,7 +146,7 @@
     <header class="flex items-center justify-between px-6">
         <div class="flex items-center gap-2">
             <span class="material-symbols-rounded text-blue-500 text-3xl shadow-lg">movie_filter</span>
-            <div class="text-xl font-black italic tracking-tighter text-white drop-shadow-md">CINEFLUX <span class="text-blue-500 not-italic">OS</span></div>
+            <div class="text-xl font-black italic tracking-tighter text-white drop-shadow-md">NOVA<span class="text-blue-500 not-italic">+</span></div>
         </div>
         <img id="nav-pfp" onclick="app.nav('profile')" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-9 h-9 rounded-full border border-white/20 object-cover cursor-pointer shadow-lg">
     </header>
@@ -250,12 +250,14 @@
                 <select id="theme-selector" onchange="ui.setTheme(this.value)" class="bg-transparent font-black text-blue-500 outline-none text-right">
                     <option value="dark">Dark Mode</option>
                     <option value="light">Light Mode</option>
-                    <option value="neon">Neon Cyber</option>
+                    <option value="neon">Neon Cyber</option>                    
                 </select>
             </div>
         </div>
         
-        <button onclick="app.reset()" class="w-full p-4 text-red-500 font-black text-xs tracking-[2px] uppercase bg-red-500/10 rounded-2xl border border-red-500/20 active:scale-95 transition mb-10">Borrar Datos y Reiniciar</button>
+        <div id="settings-extra-container"></div>
+        
+        
     </main>
 
     <div id="m-movie" class="modal animate-[fadeIn_0.3s_ease]">
@@ -356,7 +358,7 @@
 
     <script>
     /* ================================================================
-   CONFIGURACIÓN Y DATOS (CINEFLUX OS)
+   CONFIGURACIÓN Y DATOS (CINEFLUX OS 3.2)
    ================================================================ */
 const TMDB_KEY = 'b6083b855479a79fd9acdb0a2789f126';
 let lastScrollTop = 0;
@@ -384,41 +386,149 @@ const DATABASE = CATALOGO.reduce((acc, m) => {
 }, {});
 
 /* ================================================================
-   MÓDULO GUARDIAN 3.0 (INTERCEPTOR + WATCHDOG)
+   MOTOR DE BASE DE DATOS (INDEXED DB)
+   ================================================================ */
+const dbEngine = {
+    db: null,
+    async init() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('CinefluxOS_DB', 1);
+            request.onupgradeneeded = (e) => {
+                const idb = e.target.result;
+                if (!idb.objectStoreNames.contains('tmdb_cache')) idb.createObjectStore('tmdb_cache');
+                if (!idb.objectStoreNames.contains('app_settings')) idb.createObjectStore('app_settings');
+                if (!idb.objectStoreNames.contains('user_data')) idb.createObjectStore('user_data');
+            };
+            request.onsuccess = (e) => { this.db = e.target.result; resolve(); };
+            request.onerror = (e) => { console.error("Error IndexedDB", e); reject(); };
+        });
+    },
+    async get(store, key) {
+        return new Promise((resolve) => {
+            const tx = this.db.transaction(store, 'readonly');
+            const req = tx.objectStore(store).get(key);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => resolve(null);
+        });
+    },
+    async set(store, key, value) {
+        return new Promise((resolve) => {
+            const tx = this.db.transaction(store, 'readwrite');
+            const req = tx.objectStore(store).put(value, key);
+            req.onsuccess = () => resolve(true);
+        });
+    }
+};
+
+/* ================================================================
+   OPTIMIZADOR TMDB (SISTEMA DE CACHÉ)
+   ================================================================ */
+const api = {
+    async fetchTMDB(endpoint) {
+        const cachedData = await dbEngine.get('tmdb_cache', endpoint);
+        if (cachedData) return cachedData;
+
+        try {
+            const lang = (await settings.get('language')) || 'es-MX';
+            const separator = endpoint.includes('?') ? '&' : '?';
+            const url = `https://api.themoviedb.org/3${endpoint}${separator}api_key=${TMDB_KEY}&language=${lang}`;
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            await dbEngine.set('tmdb_cache', endpoint, data);
+            return data;
+        } catch (error) {
+            console.error("Error TMDB:", error);
+            throw error;
+        }
+    }
+};
+
+/* ================================================================
+   MOTOR DE ENRUTAMIENTO AVANZADO (HASH ROUTER)
+   ================================================================ */
+const router = {
+    currentRoute: '',
+    previousRoute: '#/home',
+    scrollMemory: {},
+
+    init() {
+        window.addEventListener('hashchange', () => this.handleRoute());
+        window.addEventListener('load', () => this.handleRoute());
+    },
+
+    async handleRoute() {
+        const hash = window.location.hash || '#/home';
+        
+        if (!this.currentRoute.startsWith('#/movie/') && this.currentRoute) {
+            this.scrollMemory[this.currentRoute] = window.scrollY;
+        }
+
+        const updateDOM = async () => {
+            if (hash.startsWith('#/movie/')) {
+                const dynamic = document.getElementById('dynamic-content');
+                if (!dynamic || dynamic.innerHTML === "") {
+                    await app.renderHomeData();
+                }
+                const id = hash.split('/').pop();
+                await app.openModalVisual(id);
+            } else {
+                app.closeModalVisual();
+                
+                if (hash === '#/home' || hash === '#/') {
+                    app.switchViewDOM('home');
+                    await app.renderHome(); 
+                    app.showHomeSection('inicio');
+                } else if (hash.startsWith('#/category/')) {
+                    const cat = decodeURIComponent(hash.split('/').pop());
+                    app.switchViewDOM('home'); 
+                    app.showHomeSection('category', cat);
+                } else {
+                    const viewId = hash.replace('#/', '');
+                    app.switchViewDOM(viewId);
+                }
+
+                setTimeout(() => {
+                    const savedScroll = this.scrollMemory[hash] || 0;
+                    window.scrollTo({ top: savedScroll, behavior: 'instant' });
+                }, 30);
+
+                this.previousRoute = hash;
+            }
+            this.currentRoute = hash;
+        };
+
+        if (document.startViewTransition) {
+            document.startViewTransition(() => updateDOM());
+        } else {
+            await updateDOM();
+        }
+    }
+};
+
+/* ================================================================
+   MÓDULO GUARDIAN 3.5 (INTERCEPTOR + UI DEL REPRODUCTOR)
    ================================================================ */
 const guardian = {
-    checkInterval: null,
-    
     init() {
         this.injectStyles();
         this.createToast();
         this.activateInterceptors();
         
-        // Watchdog: Detecta si perdemos el foco (señal de popup externo)
         window.addEventListener('blur', () => {
             if(!document.getElementById('m-player-view').classList.contains('hidden')) {
-                // Intento forzado de recuperar foco si es posible (limitado por navegadores)
-                window.focus();
-                console.warn("Guardian: Foco perdido. Posible anuncio externo abierto.");
+                this.notify("Redirección bloqueada fuera del sistema", "error");
             }
         });
     },
 
-    // NUEVO: Técnica de Intercepción Masiva
     activateInterceptors() {
-        // 1. Hijack window.open: Bloquea intentos del iframe de abrir popups usando window.parent
-        const originalOpen = window.open;
-        window.open = function(url, target, features) {
-            console.log("🚫 Guardian Interceptor: Bloqueó un intento de popup hacia", url);
-            guardian.notify("Popup Emergente Bloqueado", "success");
-            return null; // Devuelve null para romper el script del anuncio
-        };
-
-        // 2. Anti-Redirect agresivo
         window.addEventListener('beforeunload', (e) => {
-            if(!document.getElementById('m-player-view').classList.contains('hidden')) {
+            const isPlaying = !document.getElementById('m-player-view').classList.contains('hidden');
+            if(isPlaying) {
                 e.preventDefault();
-                e.returnValue = "Guardian: Se detectó un intento de redirección. ¿Deseas salir?";
+                e.returnValue = "Guardian: ¿Deseas salir del reproductor?";
                 return e.returnValue;
             }
         });
@@ -427,33 +537,26 @@ const guardian = {
     injectStyles() {
         const style = document.createElement('style');
         style.innerHTML = `
-            .guardian-toast {
-                position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-200%);
-                background: rgba(10, 15, 25, 0.95); backdrop-filter: blur(12px);
-                border: 1px solid #ef4444; border-left: 5px solid #ef4444;
-                padding: 15px 25px; border-radius: 14px;
-                display: flex; align-items: center; gap: 15px;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-                z-index: 10000; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                opacity: 0; pointer-events: none; min-width: 320px;
-            }
+            .guardian-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-200%); background: rgba(10, 15, 25, 0.95); backdrop-filter: blur(12px); border: 1px solid #ef4444; border-left: 5px solid #ef4444; padding: 15px 25px; border-radius: 14px; display: flex; align-items: center; gap: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); z-index: 10000; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; pointer-events: none; min-width: 320px; }
             .guardian-toast.active { transform: translateX(-50%) translateY(0); opacity: 1; }
             .guardian-toast.success { border-color: #3b82f6; border-left-color: #3b82f6; }
             .g-icon { color: inherit; font-size: 24px; animation: pulseG 1.5s infinite; }
             @keyframes pulseG { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
             
-            #guardian-shield {
-                position: absolute; inset: 0; z-index: 99;
-                background: rgba(0,0,0,0.01); cursor: pointer;
-                display: flex; align-items: center; justify-content: center;
-            }
-            .shield-label {
-                background: #ef4444; color: white; padding: 6px 14px;
-                border-radius: 20px; font-size: 11px; font-weight: 800;
-                text-transform: uppercase; opacity: 0; transition: 0.3s;
-                box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
-            }
-            #guardian-shield:active .shield-label { opacity: 1; }
+            #guardian-shield { position: absolute; inset: 0; z-index: 99; background: #050811; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 20px; }
+            .shield-panel { text-align: center; max-width: 420px; background: rgba(255, 255, 255, 0.03); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(10px); box-shadow: 0 30px 60px rgba(0,0,0,0.4); }
+            .shield-dns-text { color: #f87171; font-size: 12px; font-weight: 600; line-height: 1.6; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+            .shield-btn { background: #3b82f6; color: white; border: none; padding: 12px 28px; border-radius: 30px; font-size: 13px; font-weight: 800; text-transform: uppercase; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; transition: 0.3s; box-shadow: 0 10px 20px rgba(59,130,246,0.3); }
+            .shield-btn:hover { transform: scale(1.05); background: #2563eb; }
+
+            /* ESTILOS DE LA LISTA DE ADICIONALES EN AJUSTES */
+            .os-settings-title { font-size: 11px; font-weight: 900; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin: 25px 0 10px 5px; }
+            .os-settings-list { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; overflow: hidden; list-style: none; padding: 0; margin: 0; }
+            .os-settings-item { border-bottom: 1px solid rgba(255,255,255,0.05); }
+            .os-settings-item:last-child { border-bottom: none; }
+            .os-settings-link { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; color: #e2e8f0; text-decoration: none; font-size: 13px; font-weight: 700; transition: background 0.2s; }
+            .os-settings-link:active { background: rgba(255,255,255,0.05); }
+            .os-settings-arrow { color: #475569; font-size: 18px; }
         `;
         document.head.appendChild(style);
     },
@@ -462,28 +565,45 @@ const guardian = {
         const toast = document.createElement('div');
         toast.id = 'guardian-toast';
         toast.className = 'guardian-toast success';
-        toast.innerHTML = `
-            <span class="material-symbols-rounded g-icon" id="g-icon">security</span>
-            <div>
-                <div style="color:white; font-size:13px; font-weight:900; margin-bottom:2px">CINEFLUX GUARDIAN</div>
-                <div id="g-text" style="color:#cbd5e1; font-size:11px">Escudo Activo</div>
-            </div>
-        `;
+        toast.innerHTML = `<span class="material-symbols-rounded g-icon" id="g-icon">security</span><div><div style="color:white; font-size:13px; font-weight:900; margin-bottom:2px">CINEFLUX GUARDIAN</div><div id="g-text" style="color:#cbd5e1; font-size:11px">Escudo Activo</div></div>`;
         document.body.appendChild(toast);
     },
     
     notify(msg, type = 'success') {
         const t = document.getElementById('guardian-toast');
+        if(!t) return;
         const icon = document.getElementById('g-icon');
-        
         t.className = `guardian-toast active ${type}`;
         document.getElementById('g-text').innerText = msg;
-        icon.innerText = type === 'success' ? 'security' : 'gpp_bad';
-        
+        icon.innerText = type === 'success' ? 'security' : 'warning';
         if(navigator.vibrate) navigator.vibrate(type === 'error' ? [50, 50, 50] : 50);
-        
         if(this.timer) clearTimeout(this.timer);
         this.timer = setTimeout(() => t.classList.remove('active'), 4000);
+    }
+};
+
+/* ================================================================
+   GESTOR DE AJUSTES AVANZADOS
+   ================================================================ */
+const settings = {
+    cache: {},
+    async init() {
+        const defaults = { theme: 'dark', language: 'es-MX', autoplay: false, quality: 'auto' };
+        for (const key of Object.keys(defaults)) {
+            const val = await dbEngine.get('app_settings', key);
+            this.cache[key] = val !== null ? val : defaults[key];
+        }
+        this.apply();
+    },
+    async set(key, value) {
+        this.cache[key] = value;
+        await dbEngine.set('app_settings', key, value);
+        this.apply();
+    },
+    async get(key) { return this.cache[key]; },
+    apply() { 
+        document.body.className = `${this.cache.theme}-mode`; 
+        document.documentElement.className = `${this.cache.theme}-mode`; 
     }
 };
 
@@ -491,14 +611,30 @@ const guardian = {
    CORE APP
    ================================================================ */
 const app = {
-    init() {
-        this.renderHome();
+    async init() {
+        await dbEngine.init(); 
+        await settings.init(); 
+
         this.renderTabs();
+        router.init(); 
         profile.init();
         favs.init();
         ui.init();
         guardian.init(); 
+        
+        this.preCacheAllCatalog();
+
         window.addEventListener('scroll', () => this.handleScroll(), { passive: true });
+    },
+
+    async preCacheAllCatalog() {
+        const allIds = [].concat(...Object.values(DATABASE));
+        for (const id of allIds) {
+            try {
+                await api.fetchTMDB(`/movie/${id}`);
+                await api.fetchTMDB(`/movie/${id}/credits`);
+            } catch (e) {}
+        }
     },
 
     handleScroll() {
@@ -511,67 +647,77 @@ const app = {
     renderTabs() {
         const menu = document.getElementById('tabs-menu');
         const categories = ["Inicio", ...Object.keys(DATABASE)];
-        menu.innerHTML = categories.map((cat, i) => `
-            <div class="tab-item ${i===0?'active':''}" onclick="app.filterCat(this, '${cat}')">${cat}</div>
-        `).join('');
+        menu.innerHTML = categories.map((cat) => {
+            const routeTarget = cat === "Inicio" ? "#/home" : `#/category/${encodeURIComponent(cat)}`;
+            return `<div class="tab-item" data-cat="${cat}" onclick="location.hash='${routeTarget}'">${cat}</div>`;
+        }).join('');
     },
 
-    filterCat(el, cat) {
-        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
+    switchViewDOM(viewId) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        
+        const activeView = document.getElementById(`v-${viewId}`);
+        if(activeView) activeView.classList.add('active');
+        
+        const activeNavBtn = document.querySelector(`.nav-item[onclick*="'${viewId}'"]`);
+        if(activeNavBtn) activeNavBtn.classList.add('active');
+
+        document.getElementById('tabs-menu').style.display = (viewId === 'home') ? 'flex' : 'none';
+    },
+
+    showHomeSection(type, catName = '') {
         const dynamic = document.getElementById('dynamic-content');
         const grid = document.getElementById('category-grid');
         const hero = document.getElementById('hero');
         const favRow = document.getElementById('fav-row');
 
-        if(cat === "Inicio") {
+        const visualCatName = type === 'inicio' ? 'Inicio' : catName;
+        document.querySelectorAll('.tab-item').forEach(t => {
+            if(t.getAttribute('data-cat') === visualCatName) t.classList.add('active');
+            else t.classList.remove('active');
+        });
+
+        if(type === 'inicio') {
             dynamic.classList.remove('hidden');
             grid.classList.add('hidden');
             hero.classList.remove('hidden');
-            if(favs.list.length > 0) favRow.classList.remove('hidden');
+            if(favs.list.length > 0) favRow?.classList.remove('hidden');
         } else {
             dynamic.classList.add('hidden');
             grid.classList.remove('hidden');
+            hero.html = '';
             hero.classList.add('hidden');
-            favRow.classList.add('hidden');
-            this.renderCategoryGrid(cat);
+            favRow?.classList.add('hidden');
+            this.renderCategoryGrid(catName);
         }
-        window.scrollTo({top: 0, behavior: 'smooth'});
     },
 
     async renderCategoryGrid(cat) {
         const grid = document.getElementById('category-grid');
         grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Cargando...</div>';
         const ids = DATABASE[cat] || [];
-        let html = '';
-        for(const id of ids) {
-            try {
-                const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json());
-                html += this.createCard(m);
-            } catch(e) {}
+        try {
+            const movies = await Promise.all(ids.map(id => api.fetchTMDB(`/movie/${id}`)));
+            grid.innerHTML = movies.map(m => this.createCard(m)).join('');
+        } catch(e) {
+            grid.innerHTML = '<div class="text-red-500 text-center">Error al cargar la categoría</div>';
         }
-        grid.innerHTML = html;
     },
 
     createCard(m) {
+        if(!m || !m.vote_average) return ''; 
         const rate = m.vote_average.toFixed(1);
         const rateColor = rate >= 7 ? 'text-green-400' : (rate >= 5 ? 'text-yellow-400' : 'text-red-400');
-        return `<div class="card" onclick="app.openModal(${m.id})">
+        return `<div class="card" onclick="location.hash='#/movie/${m.id}'">
             <img src="https://image.tmdb.org/t/p/w500${m.poster_path}" loading="lazy">
             <div class="rating-badge"><span class="material-symbols-rounded" style="font-size:10px">star</span><span class="${rateColor}">${rate}</span></div>
         </div>`;
     },
 
-    nav(id, el) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.getElementById(`v-${id}`).classList.add('active');
-        if(el) el.classList.add('active');
-        document.getElementById('tabs-menu').style.display = (id === 'home') ? 'flex' : 'none';
-        window.scrollTo(0,0);
-    },
+    nav(id) { location.hash = `#/${id}`; },
 
-    async renderHome() {
+    async renderHomeData() {
         const container = document.getElementById('dynamic-content');
         container.innerHTML = "";
         for (const [title, ids] of Object.entries(DATABASE)) {
@@ -579,39 +725,48 @@ const app = {
             row.innerHTML = `<h2 class="section-title">${title}</h2><div id="row-${title.replace(/\s/g,'')}" class="h-scroll"></div>`;
             container.appendChild(row);
             const el = document.getElementById(`row-${title.replace(/\s/g,'')}`);
-            const promises = ids.map(id => fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()));
-            const movies = await Promise.all(promises);
+            
+            const movies = await Promise.all(ids.map(id => api.fetchTMDB(`/movie/${id}`)));
             el.innerHTML = movies.map(m => this.createCard(m)).join('');
         }
         this.initHero();
+    },
+
+    async renderHome() {
+        const container = document.getElementById('dynamic-content');
+        if (container && container.innerHTML === "") { 
+            await this.renderHomeData();
+        }
     },
 
     async initHero() {
         const allIds = [].concat(...Object.values(DATABASE));
         const randomId = allIds[Math.floor(Math.random() * allIds.length)];
         try {
-            const d = await fetch(`https://api.themoviedb.org/3/movie/${randomId}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json());
+            const d = await api.fetchTMDB(`/movie/${randomId}`);
             document.getElementById('hero').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
             document.getElementById('hero-title').innerText = d.title;
             document.getElementById('hero-year').innerText = d.release_date.split('-')[0];
             document.getElementById('hero-rating').innerHTML = `<span class="material-symbols-rounded text-sm">star</span> ${d.vote_average.toFixed(1)}`;
             document.getElementById('hero-sinopsis').innerText = d.overview;
-            document.getElementById('hero-play').onclick = () => this.openModal(randomId);
+            document.getElementById('hero-play').onclick = () => location.hash = `#/movie/${randomId}`;
+            
             const favBtn = document.getElementById('hero-fav-btn-action');
-            favBtn.onclick = () => favs.toggle(randomId);
+            if(favBtn) favBtn.onclick = () => favs.toggle(randomId);
             favs.updateIcon(document.getElementById('hero-fav-icon'), randomId);
         } catch(e) {}
     },
 
-    async openModal(id) {
+    async openModalVisual(id) {
         const mod = document.getElementById('m-movie');
         mod.style.display = 'block';
         document.body.style.overflow = 'hidden';
         try {
             const [d, c] = await Promise.all([
-                fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json()),
-                fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${TMDB_KEY}`).then(r => r.json())
+                api.fetchTMDB(`/movie/${id}`),
+                api.fetchTMDB(`/movie/${id}/credits`)
             ]);
+            
             currentMovieData = { ...d, studio: d.production_companies[0]?.name || 'N/A' };
             document.getElementById('m-banner').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
             document.getElementById('m-title').innerText = d.title;
@@ -623,6 +778,7 @@ const app = {
             document.getElementById('m-dir').innerText = c.crew.find(p => p.job === 'Director')?.name || '---';
             document.getElementById('m-revenue').innerText = d.revenue > 0 ? `$${(d.revenue/1e6).toFixed(1)}M` : 'N/A';
             document.getElementById('m-cast').innerHTML = c.cast.slice(0,8).map(a => `<div class="flex-shrink-0 text-center w-16"><img src="${a.profile_path?'https://image.tmdb.org/t/p/w200'+a.profile_path:'https://ui-avatars.com/api/?name='+a.name}" class="w-12 h-12 rounded-full mx-auto object-cover mb-2"><p class="text-[9px] font-bold text-gray-400 truncate">${a.name}</p></div>`).join('');
+            
             const playBtn = document.getElementById('m-play-btn');
             if(CONTENT_LINKS[id]) {
                 playBtn.onclick = () => this.openPlayer(CONTENT_LINKS[id]);
@@ -635,14 +791,11 @@ const app = {
                 playBtn.style.opacity = "0.5";
             }
             const fBtn = document.getElementById('m-fav-btn');
-            fBtn.onclick = () => { favs.toggle(id); favs.updateIcon(fBtn.querySelector('span'), id); };
-            favs.updateIcon(fBtn.querySelector('span'), id);
-        } catch (e) {}
+            if(fBtn) fBtn.onclick = () => { favs.toggle(id); favs.updateIcon(fBtn.querySelector('span'), id); };
+            if(fBtn) favs.updateIcon(fBtn.querySelector('span'), id);
+        } catch (e) { console.error(e); }
     },
 
-    /* ================================================================
-       REPRODUCTOR (NO SANDBOX - HIGH COMPATIBILITY MODE)
-       ================================================================ */
     openPlayer(url) {
         const playerView = document.getElementById('m-player-view');
         playerView.classList.remove('hidden');
@@ -652,97 +805,106 @@ const app = {
             document.getElementById('p-overlay-year').innerText = currentMovieData.release_date.split('-')[0];
             document.getElementById('p-overlay-studio').innerText = currentMovieData.studio;
             document.getElementById('p-overlay-rate').innerText = currentMovieData.vote_average.toFixed(1);
-            const subject = encodeURIComponent(`Reporte: ${currentMovieData.title}`);
-            document.getElementById('btn-report-email').href = `mailto:support@cineflux.com?subject=${subject}`;
-            document.getElementById('btn-report-tg').href = `https://t.me/cinefluxsupport?start=${currentMovieData.id}`;
         }
 
         const container = document.querySelector('.viewport-container');
         container.innerHTML = ''; 
 
-        // 1. ESCUDO DE INTERCEPCIÓN (Solo visual ahora, ya no bloquea clicks para cargar)
         const shield = document.createElement('div');
         shield.id = 'guardian-shield';
-        shield.innerHTML = '<div class="shield-label">Click para Iniciar</div>';
+        shield.innerHTML = `
+            <div class="shield-panel">
+                <div class="shield-dns-text">
+                    ⚠️ NOTA: Para bloquear el 100% de los anuncios y ventanas emergentes del reproductor, te recomendamos configurar un DNS privado (como AdGuard DNS) en tu dispositivo.
+                </div>
+                <button class="shield-btn">
+                    <span class="material-symbols-rounded">play_circle</span> Click para reproducir
+                </button>
+            </div>
+        `;
         
-        // 2. IFRAME SIN SANDBOX (Modo Full Compatibilidad)
         const iframe = document.createElement('iframe');
         iframe.id = 'vEngine';
         iframe.className = 'viewport';
-        
-        // --- SIN SANDBOX ---
-        // Se han eliminado las restricciones de sandbox para permitir que todos los reproductores funcionen.
-        // A cambio, usamos 'guardian.activateInterceptors' para proteger la ventana principal.
-        
-        // Seguridad Pasiva:
-        iframe.setAttribute('referrerpolicy', 'no-referrer'); // Evita que sepan tu dominio
+        iframe.setAttribute('referrerpolicy', 'no-referrer'); 
         iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
         iframe.setAttribute('frameborder', '0');
-        
-        // Carga diferida para preparar el escudo
         iframe.src = "about:blank"; 
 
         container.appendChild(shield);
         container.appendChild(iframe);
 
         shield.onclick = () => {
-            if(iframe.src === "about:blank") {
-                iframe.src = url;
-            }
-
-            guardian.notify("REPRODUCTOR CARGADO (Modo Sin Restricciones)", "success");
-            shield.style.transition = "opacity 0.6s";
+            if(iframe.src === "about:blank") iframe.src = url;
+            guardian.notify("Streaming Iniciado Exitosamente", "success");
+            shield.style.transition = "opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1)";
             shield.style.opacity = "0";
-            
-            setTimeout(() => {
-                shield.remove();
-            }, 800);
+            setTimeout(() => shield.remove(), 500);
         };
 
         if (playerView.requestFullscreen) playerView.requestFullscreen();
     },
 
     closePlayer() {
-        document.querySelector('.viewport-container').innerHTML = ''; 
+        const container = document.querySelector('.viewport-container');
+        if(container) container.innerHTML = ''; 
         document.getElementById('m-player-view').classList.add('hidden');
-        // Limpiamos el beforeunload al salir
-        window.onbeforeunload = null;
         if (document.exitFullscreen) document.exitFullscreen();
-        document.getElementById('report-menu').classList.remove('open');
+        document.getElementById('report-menu')?.classList.remove('open');
     },
 
-    closeModal() { this.closePlayer(); document.getElementById('m-movie').style.display = 'none'; document.body.style.overflow = 'auto'; },
-    toggleReport() { document.getElementById('report-menu').classList.toggle('open'); },
+    closeModalVisual() {
+        this.closePlayer();
+        const mod = document.getElementById('m-movie');
+        if(mod) mod.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    },
+
+    closeModal() { location.hash = router.previousRoute || '#/home'; },
+    toggleReport() { document.getElementById('report-menu')?.classList.toggle('open'); },
     
     async shareMovie() {
         if(!currentMovieData) return;
-        const url = CONTENT_LINKS[currentMovieData.id] || window.location.href;
+        const url = `${window.location.origin}${window.location.pathname}#/movie/${currentMovieData.id}`;
         if(navigator.share) navigator.share({title: currentMovieData.title, url: url});
-        else alert("Link copiado");
+        else {
+            navigator.clipboard.writeText(url);
+            guardian.notify("Enlace de película copiado", "success");
+        }
     },
 
     async search(q) {
         const grid = document.getElementById('search-grid');
-        if(q.length < 3) return;
+        if(!grid || q.length < 3) return;
         try {
             const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${q}&language=es-MX`).then(res => res.json());
             grid.innerHTML = r.results.map(m => this.createCard(m)).join('');
         } catch(e) {}
     },
 
-    reset() { if(confirm("¿Reiniciar ajustes?")) { localStorage.clear(); location.reload(); } }
+    async reset() { 
+        if(confirm("¿Borrar todos los datos y caché local?")) { 
+            indexedDB.deleteDatabase('CinefluxOS_DB');
+            localStorage.clear(); 
+            location.reload(); 
+        } 
+    }
 };
 
 /* ================================================================
-   OTROS SISTEMAS
+   OTROS SISTEMAS (UI INTERFAZ + RECONEXIÓN DE TEMAS)
    ================================================================ */
 const favs = {
-    list: JSON.parse(localStorage.getItem('ghost_favs')) || [],
-    init() { this.render(); },
-    toggle(id) {
+    list: [],
+    async init() { 
+        const stored = await dbEngine.get('user_data', 'favs');
+        this.list = stored || [];
+        this.render(); 
+    },
+    async toggle(id) {
         if(this.list.includes(id)) this.list = this.list.filter(x => x !== id);
         else this.list.push(id);
-        localStorage.setItem('ghost_favs', JSON.stringify(this.list));
+        await dbEngine.set('user_data', 'favs', this.list);
         this.render();
         favs.updateIcon(document.getElementById('hero-fav-icon'), id);
     },
@@ -755,48 +917,145 @@ const favs = {
     async render() {
         const row = document.getElementById('fav-row');
         const cont = document.getElementById('fav-container');
+        if(!cont) return;
         if(this.list.length === 0) { row?.classList.add('hidden'); return; }
         row?.classList.remove('hidden');
         cont.innerHTML = "";
-        for(const id of this.list) {
-            const m = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=es-MX`).then(r => r.json());
-            cont.innerHTML += `<div class="card" onclick="app.openModal(${id})"><img src="https://image.tmdb.org/t/p/w300${m.poster_path}"></div>`;
-        }
+        
+        const movies = await Promise.all(this.list.map(id => api.fetchTMDB(`/movie/${id}`)));
+        cont.innerHTML = movies.map(m => `<div class="card" onclick="location.hash='#/movie/${m.id}'"><img src="https://image.tmdb.org/t/p/w300${m.poster_path}"></div>`).join('');
     }
 };
 
 const ui = {
     async init() {
+        this.renderSettingsExtras();
+        this.syncThemeSelector(); 
+
         setInterval(() => {
-            document.getElementById('sys-time').innerText = new Date().toLocaleTimeString();
-            const diff = Date.now() - appStartTime;
-            const h = Math.floor(diff / 3600000).toString().padStart(2,'0');
-            const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2,'0');
-            const s = Math.floor((diff % 60000) / 1000).toString().padStart(2,'0');
-            document.getElementById('sys-timer').innerText = `${h}:${m}:${s}`;
+            const el = document.getElementById('sys-time');
+            if(el) el.innerText = new Date().toLocaleTimeString();
+            const timerEl = document.getElementById('sys-timer');
+            if(timerEl) {
+                const diff = Date.now() - appStartTime;
+                const h = Math.floor(diff / 3600000).toString().padStart(2,'0');
+                const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2,'0');
+                const s = Math.floor((diff % 60000) / 1000).toString().padStart(2,'0');
+                timerEl.innerText = `${h}:${m}:${s}`;
+            }
         }, 1000);
         try {
             const ipData = await fetch('https://ipapi.co/json/').then(r => r.json());
-            document.getElementById('sys-country').innerText = ipData.country_name || "Globo";
-        } catch(e) { document.getElementById('sys-country').innerText = "Offline"; }
-        ui.setTheme(localStorage.getItem('app_theme') || 'dark');
+            const countryEl = document.getElementById('sys-country');
+            if(countryEl) countryEl.innerText = ipData.country_name || "Globo";
+        } catch(e) { 
+            const countryEl = document.getElementById('sys-country');
+            if(countryEl) countryEl.innerText = "Offline"; 
+        }
     },
-    setTheme(t) { document.body.className = t + '-mode'; localStorage.setItem('app_theme', t); }
+
+    async setTheme(themeName) {
+        await settings.set('theme', themeName);
+    },
+
+    async syncThemeSelector() {
+        const selector = document.getElementById('theme-selector');
+        if (selector) {
+            const activeTheme = await settings.get('theme');
+            if (activeTheme) selector.value = activeTheme;
+        }
+    },
+
+    renderSettingsExtras() {
+        const container = document.getElementById('settings-extra-container');
+        if (!container) return; 
+        container.innerHTML = `
+            <div class="os-settings-title">Redes sociales</div>
+            <ul class="os-settings-list">
+                <li class="os-settings-item">
+                    <a href="https://wa.me/tu_numero" target="_blank" class="os-settings-link">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(34, 197, 94, 0.1); border-radius: 8px;">
+                                <svg style="width: 16px; height: 16px; fill: #22c55e;" viewBox="0 0 24 24">
+                                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.717-1.456L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.625 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.963C16.328 1.981 13.859.954 11.23.954c-5.438 0-9.863 4.374-9.867 9.803-.001 1.73.457 3.419 1.323 4.921l-.982 3.585 3.676-.965zm11.841-4.892c-.344-.173-2.038-1.005-2.349-1.118-.312-.114-.539-.172-.767.172-.228.344-.88 1.118-1.078 1.346-.199.228-.399.256-.743.083-1.123-.563-1.943-.977-2.71-2.292-.204-.348.204-.323.584-1.082.063-.128.031-.24-.016-.326-.047-.086-.4-.964-.548-1.322-.14-.34-.294-.293-.404-.299-.105-.005-.226-.006-.347-.006-.12 0-.317.045-.483.228-.166.183-.634.621-.634 1.513 0 .892.648 1.754.738 1.876.091.122 1.275 1.947 3.09 2.731.432.186.769.297 1.031.381.434.137.829.117 1.141.07.348-.051 1.038-.424 1.187-.833.15-.408.15-.758.105-.833-.045-.075-.165-.114-.51-.287z"/>
+                                </svg>
+                            </div>
+                            <span>WhatsApp</span>
+                        </div>
+                        <span class="material-symbols-rounded os-settings-arrow">chevron_right</span>
+                    </a>
+                </li>
+                <li class="os-settings-item">
+                    <a href="https://tiktok.com/@tu_cuenta" target="_blank" class="os-settings-link">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                                <svg style="width: 14px; height: 14px; fill: #e2e8f0;" viewBox="0 0 24 24">
+                                    <path d="M12.525.02c1.312.0 2.614.173 3.86.516V5.12c-.792-.244-1.616-.367-2.443-.367h-.726v7.382c0 2.877-2.338 5.214-5.215 5.214-2.876 0-5.214-2.337-5.214-5.214 0-2.877 2.338-5.215 5.214-5.215.344 0 .685.033 1.02.1v-4.38c-.337-.023-.677-.035-1.02-.035C3.626 2.545 0 6.171 0 10.652c0 4.481 3.626 8.107 8.107 8.107 4.428 0 8.033-3.55 8.105-7.954V5.163c1.472 1.056 3.242 1.687 5.16 1.713v-4.38c-2.404-.031-4.526-1.332-5.69-3.25L12.525.02z"/>
+                                </svg>
+                            </div>
+                            <span>TikTok</span>
+                        </div>
+                        <span class="material-symbols-rounded os-settings-arrow">chevron_right</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="os-settings-title">Otros ajustes</div>
+            <ul class="os-settings-list">
+                <li class="os-settings-item">
+                    <a href="https://tu-enlace-de-chat.com" target="_blank" class="os-settings-link">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
+                                <span class="material-symbols-rounded" style="color: #3b82f6; font-size: 18px;">chat_bubble</span>
+                            </div>
+                            <span>1. Chat</span>
+                        </div>
+                        <span class="material-symbols-rounded os-settings-arrow">chevron_right</span>
+                    </a>
+                </li>
+                <li class="os-settings-item">
+                    <a href="https://tu-enlace-de-video.com" target="_blank" class="os-settings-link">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
+                                <span class="material-symbols-rounded" style="color: #ef4444; font-size: 18px;">smart_display</span>
+                            </div>
+                            <span>2. Video</span>
+                        </div>
+                        <span class="material-symbols-rounded os-settings-arrow">chevron_right</span>
+                    </a>
+                </li>
+            </ul>
+        `;
+    }
 };
 
+/* ================================================================
+   SISTEMA DE PERFIL DE USUARIO
+   ================================================================ */
 const profile = {
-    init() {
-        document.getElementById('p-name-input').value = localStorage.getItem('p_name') || "";
-        document.getElementById('p-img').src = localStorage.getItem('p_img') || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix";
-        document.getElementById('nav-pfp').src = document.getElementById('p-img').src;
-        document.getElementById('p-name-input').addEventListener('input', (e) => localStorage.setItem('p_name', e.target.value));
+    async init() {
+        const pName = await dbEngine.get('user_data', 'p_name') || "";
+        const pImg = await dbEngine.get('user_data', 'p_img') || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix";
+        
+        const nameInput = document.getElementById('p-name-input');
+        const imgEl = document.getElementById('p-img');
+        const navPfp = document.getElementById('nav-pfp');
+
+        if(nameInput) {
+            nameInput.value = pName;
+            nameInput.addEventListener('input', (e) => dbEngine.set('user_data', 'p_name', e.target.value));
+        }
+        if(imgEl) imgEl.src = pImg;
+        if(navPfp) navPfp.src = pImg;
     },
     changePhoto(e) {
         const reader = new FileReader();
-        reader.onload = () => {
-            localStorage.setItem('p_img', reader.result);
-            document.getElementById('p-img').src = reader.result;
-            document.getElementById('nav-pfp').src = reader.result;
+        reader.onload = async () => {
+            await dbEngine.set('user_data', 'p_img', reader.result);
+            const imgEl = document.getElementById('p-img');
+            const navPfp = document.getElementById('nav-pfp');
+            if(imgEl) imgEl.src = reader.result;
+            if(navPfp) navPfp.src = reader.result;
         };
         if(e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
     }
