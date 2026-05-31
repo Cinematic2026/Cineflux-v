@@ -366,14 +366,44 @@ let appStartTime = Date.now();
 let currentMovieData = null; 
 
 const CATALOGO = [
+    { id: 1304313, link: "https://cuevana.gs/player.php?t=3pnQEi7RU4qzI8fxnZ6q3OWb4DF3O-NM7gUCwnBteHtKo9UL1SydbAFff4nzr3hBWv9aMGe-br4yxTwjR4SCpA&amp;server=vimeos", categoria: "Estreno" },
+    { id: 1306368, link: "https://cuevana.gs/player.php?t=ZDLQ_lHf-j0BVsHpotS-MRwrrP08SiSS5axXsNA9N8HAwlkp94kekuyow2haXPfkwy393ub1sPMp_SYZXUB-KA&server=goodstream", categoria: "Estreno" },
+    { id: 1318447, link: "https://allcalidad.re/wp-content/uploads", categoria: "Estreno" },
     { id: 1522377, link: "https://hgplaycdn.com/e/27tc341hgd98", categoria: "Estreno" },
     { id: 1180831, link: "https://hgplaycdn.com/e/27tc341hgd98", categoria: "Estreno" },
     { id: 1547050, link: "https://yuguaab.com/e/3urdbixpgqjr", categoria: "Estreno" },
     { id: 1242898, link: "https://vimeos.net/embed-gifb0mvp14aw.html", categoria: "Estreno" },
     { id: 533535, link: "https://vimeos.net/embed-gifb0mvp14aw.html", categoria: "Estreno" },
     { id: 1084242, link: "https://vimeos.net/embed-mjskmrhlb91i.html", categoria: "Estreno" },
+    
+    
+    
+    { id: 4348, link: "https://vimeos.net/embed-lzmh38ojay14.html", categoria: "Romance" },
+    { id: 555790, link: "https://vimeos.net/embed-hrmwtn1uwffv.html", categoria: "Romance" },
+    { id: 22971, link: "https://vimeos.net/embed-uvc2v3r7zjwk.html", categoria: "Romance" },
+    { id: 72570, link: "https://vimeos.net/embed-uvc2v3r7zjwk.html", categoria: "Romance" },
+    { id: 296096, link: "https://vimeos.net/embed-u9mzox35tjjx.html", categoria: "Romance" },
+    { id: 9947, link: "https://vimeos.net/embed-k96vhaekjjuz.html", categoria: "Romance" },
+    { id: 1325734, link: "https://vimeos.net/embed-v0f2qzieze5h.html", categoria: "Romance" },
+    { id: 567609, link: "https://vimeos.net/embed-5wlva5nb7k2q.html", categoria: "Romance" },
+    { id: 10603, link: "https://vimeos.net/embed-zi7nvd5o38ko.html", categoria: "Romance" },
+    { id: 597, link: "https://vimeos.net/embed-gkydkzkvctxk.html", categoria: "Romance" },
+    
+    
+   
+   
+    { id: 361743, link: "https://vimeos.net/embed-lqsy55vqpno4.html", categoria: "Acción" },
+    { id: 37724, link: "https://vimeos.net/embed-vuf50xlhgqsm.html", categoria: "Acción" },
+    { id: 603692, link: "https://vimeos.net/embed-f4tp8s5fk17z.html", categoria: "Acción" },
+    { id: 624860, link: "https://vimeos.net/embed-auvjyi7b0063.html", categoria: "Acción" },
+    { id: 280, link: "https://vimeos.net/embed-3prht808n14r.html", categoria: "Acción" },
+    { id: 786892, link: "https://vimeos.net/embed-mm4cdn0h61h8.html", categoria: "Acción" },
+    { id: 1571, link: "https://vimeos.net/embed-utfi46eybl05.html", categoria: "Acción" },
     { id: 1387382, link: "https://player.cuevana.is/player.php?h=rxPRsRSX4IlkyS1F21W5j1LWaxDrSlOWwDzFztiv8jRa0TKuAj7i3ipYgfIdutaO", categoria: "Acción" },
     { id: 1556834, link: "https://vimeos.net/embed-4pahvxfpu00m.html", categoria: "Acción" },
+    { id: 1635, link: "https://vimeos.net/embed-smljuuvt3j13.html", categoria: "Acción" },
+    
+    
     { id: 426063, link: "https://vimeos.net/embed-wuozbsxutkuj.html", categoria: "Terror" },
     { id: 1197137, link: "https://vimeos.net/embed-xjc6uuujzzax.html", categoria: "Terror" }
 ];
@@ -973,7 +1003,7 @@ const ui = {
             <div class="os-settings-title">Redes sociales</div>
             <ul class="os-settings-list">
                 <li class="os-settings-item">
-                    <a href="https://wa.me/tu_numero" target="_blank" class="os-settings-link">
+                    <a href="go:whatsapp" target="_blank" class="os-settings-link">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(34, 197, 94, 0.1); border-radius: 8px;">
                                 <svg style="width: 16px; height: 16px; fill: #22c55e;" viewBox="0 0 24 24">
@@ -986,7 +1016,7 @@ const ui = {
                     </a>
                 </li>
                 <li class="os-settings-item">
-                    <a href="https://tiktok.com/@tu_cuenta" target="_blank" class="os-settings-link">
+                    <a href="go:tiktok" target="_blank" class="os-settings-link">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
                                 <svg style="width: 14px; height: 14px; fill: #e2e8f0;" viewBox="0 0 24 24">
@@ -1003,23 +1033,23 @@ const ui = {
             <div class="os-settings-title">Otros ajustes</div>
             <ul class="os-settings-list">
                 <li class="os-settings-item">
-                    <a href="https://tu-enlace-de-chat.com" target="_blank" class="os-settings-link">
+                    <a href="gp:chat" target="_blank" class="os-settings-link">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
                                 <span class="material-symbols-rounded" style="color: #3b82f6; font-size: 18px;">chat_bubble</span>
                             </div>
-                            <span>1. Chat</span>
+                            <span>Chat</span>
                         </div>
                         <span class="material-symbols-rounded os-settings-arrow">chevron_right</span>
                     </a>
                 </li>
                 <li class="os-settings-item">
-                    <a href="https://tu-enlace-de-video.com" target="_blank" class="os-settings-link">
+                    <a href="go:video" target="_blank" class="os-settings-link">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
                                 <span class="material-symbols-rounded" style="color: #ef4444; font-size: 18px;">smart_display</span>
                             </div>
-                            <span>2. Video</span>
+                            <span>Video</span>
                         </div>
                         <span class="material-symbols-rounded os-settings-arrow">chevron_right</span>
                     </a>
