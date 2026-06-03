@@ -145,8 +145,50 @@
 
     <header class="flex items-center justify-between px-6">
         <div class="flex items-center gap-2">
-            <span class="material-symbols-rounded text-blue-500 text-3xl shadow-lg">movie_filter</span>
-            <div class="text-xl font-black italic tracking-tighter text-white drop-shadow-md">NOVA<span class="text-blue-500 not-italic">+</span></div>
+            <svg width="70" height="70" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="novaComplexGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7DD3FC"/> <stop offset="50%" stop-color="#3B82F6"/> <stop offset="100%" stop-color="#1E3A8A"/> </linearGradient>
+
+    <filter id="novaAdvancedGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur1"/>
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur2"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur1"/>
+        <feMergeNode in="coloredBlur2"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g filter="url(#novaAdvancedGlow)">
+    
+    <g fill="url(#novaComplexGradient)">
+      <path d="M36 92V36H52L76 72V36H92V92H76L52 56V92H36Z"/>
+      
+      <path d="M40 88V40h8L72 68V40h8v48H72L48 60v28h-8z" fill="#ffffff" opacity="0.15"/>
+      <path d="M44 84V44h4L68 64V44h4v40H68L44 60v24h-4z" fill="#ffffff" opacity="0.1"/>
+      
+      <path d="M36 36h16L76 72h16M76 36H92" stroke="#ffffff" stroke-width="0.75" opacity="0.4"/>
+    </g>
+
+    <g transform="translate(102, 32)">
+      <circle r="3" fill="#ffffff"/>
+      
+      <path d="M0 -15L4 -4L15 0L4 4L0 15L-4 4L-15 0L-4 -4Z" fill="#ffffff" opacity="0.8"/>
+      <path d="M0 -10L2.5 -2.5L10 0L2.5 2.5L0 10L-2.5 2.5L-10 0L-2.5 -2.5Z" fill="#93C5FD"/>
+      
+      <path d="M12 -12l-2 2M-12 12l2 -2M12 12l-2 -2M-12 -12l2 2" stroke="#ffffff" stroke-width="0.5" opacity="0.6"/>
+      <circle cx="8" cy="-8" r="1.5" fill="#ffffff" opacity="0.5"/>
+      <circle cx="-8" cy="8" r="1.5" fill="#ffffff" opacity="0.5"/>
+      <circle cx="8" cy="8" r="1" fill="#93C5FD" opacity="0.4"/>
+      
+      <use href="#starInteraction" transform="translate(-102,-32)" opacity="0.5"/>
+    </g>
+  </g>
+</svg>
+
+            <div class="text-xl font-black italic tracking-tighter text-white drop-shadow-md">Premium<span class="text-blue-500 not-italic"></div>
         </div>
         <img id="nav-pfp" onclick="app.nav('profile')" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-9 h-9 rounded-full border border-white/20 object-cover cursor-pointer shadow-lg">
     </header>
@@ -323,8 +365,8 @@
         </div>
 
         <div id="report-menu" class="report-bubble">
-            <a href="#" id="btn-report-email" class="report-btn hover:bg-white/10"><span class="material-symbols-rounded text-sm">mail</span> Email</a>
-            <a href="#" id="btn-report-tg" class="report-btn hover:bg-white/10"><span class="material-symbols-rounded text-sm">send</span> Telegram</a>
+            <a href="xplaymovies@gmail.com" id="btn-report-email" class="report-btn hover:bg-white/10"><span class="material-symbols-rounded text-sm">mail</span> Email</a>
+            <a href="go:telegram" id="btn-report-tg" class="report-btn hover:bg-white/10"><span class="material-symbols-rounded text-sm">send</span> Telegram</a>
         </div>
 
         <div class="player-controls">
@@ -391,8 +433,8 @@ const CATALOGO = [
     
     
    
-   
-    { id: 361743, link: "https://vimeos.net/embed-lqsy55vqpno4.html", categoria: "Acción" },
+      
+    { id: 361743, link: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video%2Fmp4&link=https%3A%2F%2F1a-1791.com%2Fvideo%2Fs8%2F2%2FZ%2FN%2Fj%2Fc%2FZNjcu.caa.mp4", categoria: "Acción" },
     { id: 37724, link: "https://vimeos.net/embed-vuf50xlhgqsm.html", categoria: "Acción" },
     { id: 603692, link: "https://vimeos.net/embed-f4tp8s5fk17z.html", categoria: "Acción" },
     { id: 624860, link: "https://vimeos.net/embed-auvjyi7b0063.html", categoria: "Acción" },
@@ -402,6 +444,33 @@ const CATALOGO = [
     { id: 1387382, link: "https://player.cuevana.is/player.php?h=rxPRsRSX4IlkyS1F21W5j1LWaxDrSlOWwDzFztiv8jRa0TKuAj7i3ipYgfIdutaO", categoria: "Acción" },
     { id: 1556834, link: "https://vimeos.net/embed-4pahvxfpu00m.html", categoria: "Acción" },
     { id: 1635, link: "https://vimeos.net/embed-smljuuvt3j13.html", categoria: "Acción" },
+    
+    
+    
+    { id: 300671, link: "https://vimeos.net/embed-xfqgn63o3nsu.html", categoria: "Bélico" },
+    { id: 190859, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNnFuYzRmL3BsYXlsaXN0Lm0zdTh8IHxodHRwczovL2ltYWdlLnRtZGIub3JnL3QvcC9vcmlnaW5hbC9jbFFwZjJQODVZSWVweUVLYkxDVXR6WGF3bmYuanBn", categoria: "Bélico" },
+    { id: 273481, link: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video%2Fmp4&link=https%3A%2F%2F1a-1791.com%2Fvideo%2Ffwe1%2F06%2Fs8%2F2%2Fz%2FF%2FS%2FO%2FzFSOx.caa.mp4", categoria: "Bélico" },
+    { id: 1328803, link: "https://vimeos.net/embed-3m29lpngpbrw.html", categoria: "Bélico" },
+    { id: 228150, link: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video%2Fmp4&link=https%3A%2F%2F1a-1791.com%2Fvideo%2Ffww1%2F5f%2Fs8%2F2%2Fy%2Ff%2Fh%2Fv%2Fyfhvy.caa.mp4", categoria: "Bélico" },
+    { id: 49046, link: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video/mp4&link=https://rumble.com/hls-vod/780w68/playlist.m3u8&m=1", categoria: "Bélico" },
+    { id: 44833, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNzhpZ3A4L3BsYXlsaXN0Lm0zdTg_a2V5PUxPSGxJY0laZzdpeXg2Z0pBczdSMndnWGttSldEVUxpSGJZNG5sdFkxV1M4bVZNcVFjRW8yQSZ1PTAmYj0wfCB8", categoria: "Bélico" },
+    { id: 857, link: "https://vimeos.net/embed-n67q1ivee3hd.html", categoria: "Bélico" },
+    { id: 324786, link: "https://vimeos.net/embed-5p9ilozea2ln.html", categoria: "Bélico" },
+    { id: 530915, link: "https://vimeos.net/embed-ymgopw288nx9.html", categoria: "Bélico" },
+    
+    
+    
+    { id: 11852, link: "https://cnd-player-teleplus.blogspot.com/?player=plyr&provider=rand&format=video/mp4&link=https://1a-1791.com/video/fwe2/7e/s8/2/E/r/u/O/EruOx.gaa.mp4&m=1", categoria: "Comedia" },
+    { id: 10022, link: "https://cnd-player-teleplus.blogspot.com/?player=jwpl&provider=rand&format=video%2Fmp4&link=https%3A%2F%2F1a-1791.com%2Fvideo%2Ffww1%2Fc7%2Fs8%2F2%2Fm%2FS%2FD%2Fu%2FmSDuy.gaa.mp4", categoria: "Comedia" },
+    { id: 18240, link: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video%2Fmp4&link=https%3A%2F%2F1a-1791.com%2Fvideo%2Ffww1%2Fbc%2Fs8%2F2%2Fu%2FR%2Fa%2Fv%2FuRavy.caa.mp4", categoria: "Comedia" },
+    { id: 9506, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNnBqaXB6L3BsYXlsaXN0Lm0zdTh8IHw", categoria: "Comedia" },
+    { id: 1314481, link: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video%2Fmp4&link=https%3A%2F%2Frumble.com%2Fhls-vod%2F77udfw%2Fplaylist.m3u8", categoria: "Comedia" },
+    { id: 109418, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNzd1bDZlL3BsYXlsaXN0Lm0zdTh8IHw", categoria: "Comedia" },
+    { id: 18785, link: "https://vimeos.net/embed-8pp8zm8ir9h7.html", categoria: "Comedia" },
+    { id: 12153, link: "https://vimeos.net/embed-7l1ixa0eitda.html", categoria: "Comedia" },
+    { id: 514466, link: "https://vimeos.net/embed-h8jg45cfcxm3.html", categoria: "Comedia" },
+    { id: 771, link: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video/mp4&link=https://1a-1791.com/video/s8/2/S/t/F/L/StFLv.caa.mp4&m=1", categoria: "Comedia" },
+    { id: 9904, link: "https://vimeos.net/embed-4n0th103mtkh.html", categoria: "Comedia" },
     
     
     
@@ -1056,8 +1125,34 @@ const ui = {
                     </a>
                 </li>
             </ul>
+            
+            <div class="os-settings-title">Juegos y Emulador PS2</div>
+            <ul class="os-settings-list">
+                <li class="os-settings-item">
+                    <a href="go:juego" target="_blank" class="os-settings-link">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
+                                <span class="material-symbols-rounded" style="color: #3b82f6; font-size: 18px;">sports_esports</span>
+                            </div>
+                            <span>PlayStation2</span>
+                        </div>
+                        <span class="material-symbols-rounded os-settings-arrow">play_arrow</span>
+                    </a>
+                </li>
+                <li class="os-settings-item">
+                    <a href="go:emulador" target="_blank" class="os-settings-link">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
+                                <span class="material-symbols-rounded" style="color: #ef4444; font-size: 18px;">phonelink</span>
+                            </div>
+                            <span>Aethersx2</span>
+                        </div>
+                        <span class="material-symbols-rounded os-settings-arrow">play_arrow</span>
+                    </a>
+                </li>
+            </ul>
 
-            <div class="os-settings-title">Otros ajustes</div>
+            <div class="os-settings-title">Reels y Comunicación</div>
             <ul class="os-settings-list">
                 <li class="os-settings-item">
                     <a href="go:chat" target="_blank" class="os-settings-link">
@@ -1121,4 +1216,4 @@ const profile = {
 app.init();
 </script>
 </body>
-    </html>
+                                        </html>
