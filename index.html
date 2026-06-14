@@ -145,50 +145,50 @@
 
     <header class="flex items-center justify-between px-6">
         <div class="flex items-center gap-2">
-            <svg width="70" height="70" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+            <svg width="40" height="70" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="novaComplexGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#7DD3FC"/> <stop offset="50%" stop-color="#3B82F6"/> <stop offset="100%" stop-color="#1E3A8A"/> </linearGradient>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="50%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
 
-    <filter id="novaAdvancedGlow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="3" result="coloredBlur1"/>
-      <feGaussianBlur stdDeviation="1.5" result="coloredBlur2"/>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
       <feMerge>
-        <feMergeNode in="coloredBlur1"/>
-        <feMergeNode in="coloredBlur2"/>
+        <feMergeNode in="blur"/>
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
   </defs>
 
-  <g filter="url(#novaAdvancedGlow)">
-    
-    <g fill="url(#novaComplexGradient)">
-      <path d="M36 92V36H52L76 72V36H92V92H76L52 56V92H36Z"/>
-      
-      <path d="M40 88V40h8L72 68V40h8v48H72L48 60v28h-8z" fill="#ffffff" opacity="0.15"/>
-      <path d="M44 84V44h4L68 64V44h4v40H68L44 60v24h-4z" fill="#ffffff" opacity="0.1"/>
-      
-      <path d="M36 36h16L76 72h16M76 36H92" stroke="#ffffff" stroke-width="0.75" opacity="0.4"/>
-    </g>
+  <circle
+    cx="64"
+    cy="64"
+    r="42"
+    fill="none"
+    stroke="url(#g)"
+    stroke-width="6"
+    filter="url(#glow)"
+  />
 
-    <g transform="translate(102, 32)">
-      <circle r="3" fill="#ffffff"/>
-      
-      <path d="M0 -15L4 -4L15 0L4 4L0 15L-4 4L-15 0L-4 -4Z" fill="#ffffff" opacity="0.8"/>
-      <path d="M0 -10L2.5 -2.5L10 0L2.5 2.5L0 10L-2.5 2.5L-10 0L-2.5 -2.5Z" fill="#93C5FD"/>
-      
-      <path d="M12 -12l-2 2M-12 12l2 -2M12 12l-2 -2M-12 -12l2 2" stroke="#ffffff" stroke-width="0.5" opacity="0.6"/>
-      <circle cx="8" cy="-8" r="1.5" fill="#ffffff" opacity="0.5"/>
-      <circle cx="-8" cy="8" r="1.5" fill="#ffffff" opacity="0.5"/>
-      <circle cx="8" cy="8" r="1" fill="#93C5FD" opacity="0.4"/>
-      
-      <use href="#starInteraction" transform="translate(-102,-32)" opacity="0.5"/>
-    </g>
-  </g>
+  <path
+    d="M54 42 L88 64 L54 86 Z"
+    fill="url(#g)"
+  />
+
+  <circle
+    cx="64"
+    cy="64"
+    r="30"
+    fill="none"
+    stroke="#ffffff"
+    stroke-opacity=".15"
+    stroke-width="1"
+  />
 </svg>
 
-            <div class="text-xl font-black italic tracking-tighter text-white drop-shadow-md">Premium<span class="text-blue-500 not-italic"></div>
+            <div class="text-xl font-black italic tracking-tighter text-white drop-shadow-md">HD<span class="text-blue-500 not-italic"></div>
         </div>
         <img id="nav-pfp" onclick="app.nav('profile')" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-9 h-9 rounded-full border border-white/20 object-cover cursor-pointer shadow-lg">
     </header>
@@ -210,7 +210,22 @@
                     <p id="hero-sinopsis" class="text-gray-300 text-sm mb-6 line-clamp-2 max-w-xl drop-shadow-md">...</p>
                     <div class="flex gap-3">
                         <button id="hero-play" class="flex-1 bg-white text-black h-14 rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-gray-200 transition active:scale-95 shadow-lg shadow-white/10">
-                            <span class="material-symbols-rounded fill-1">play_arrow</span> REPRODUCIR
+                            <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="12" cy="12" r="10" fill="#3B82F6"/>
+
+  <circle cx="12" cy="12" r="8.5"
+          fill="none"
+          stroke="rgba(255,255,255,.25)"
+          stroke-width="1"/>
+
+  <path d="M10 8.5L16 12L10 15.5V8.5Z"
+        fill="#FFF"/>
+
+  <path d="M7 7C9 5 15 5 17 7"
+        stroke="rgba(255,255,255,.35)"
+        stroke-width="1"
+        stroke-linecap="round"/>
+</svg> REPRODUCIR
                         </button>
                         <button id="hero-fav-btn-action" class="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10 active:scale-95 transition">
                             <span id="hero-fav-icon" class="material-symbols-rounded">add</span>
@@ -303,54 +318,130 @@
     </main>
 
     <div id="m-movie" class="modal animate-[fadeIn_0.3s_ease]">
-        <div id="m-info-view">
-            <div id="m-banner" class="w-full h-[60vh] bg-cover bg-center relative">
-                <div class="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-50">
-                    <button onclick="app.closeModal()" class="bg-black/50 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md border border-white/10 active:scale-90 transition">
-                        <span class="material-symbols-rounded text-white">arrow_back</span>
+    <div id="m-info-view">
+        <div id="m-banner" class="w-full h-[60vh] bg-cover bg-center relative">
+            <div class="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-50">
+                <button onclick="app.closeModal()" class="bg-black/50 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md border border-white/10 active:scale-90 transition">
+                    <span class="material-symbols-rounded text-white">arrow_back</span>
+                </button>
+                
+                <div class="flex gap-2">
+                    <button id="m-btn-download" onclick="document.getElementById('download-bubble').classList.add('show')" class="bg-black/50 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md border border-white/10 active:scale-90 transition">
+                        <span class="material-symbols-rounded text-white">download</span>
+                    </button>
+                    <button id="m-btn-cast" onclick="document.getElementById('cast-bubble').classList.add('show')" class="bg-black/50 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md border border-white/10 active:scale-90 transition">
+                        <span class="material-symbols-rounded text-white">cast</span>
                     </button>
                     <button id="m-fav-btn" class="bg-black/50 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md border border-white/10 active:scale-90 transition">
                         <span class="material-symbols-rounded text-white">add</span>
                     </button>
                 </div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></div>
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></div>
+        </div>
+
+        <div class="px-6 pb-24 -mt-32 relative z-10">
+            <div class="flex items-start justify-between mb-2">
+                <h1 id="m-title" class="text-3xl font-black leading-tight max-w-[80%]">Título</h1>
+                <div class="bg-white/10 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10 flex flex-col items-center">
+                    <span class="text-[10px] uppercase font-bold text-gray-400">Rating</span>
+                    <span id="m-rate-badge" class="font-black text-yellow-400 text-sm">0.0</span>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-6">
+                <span id="m-year">2024</span> • <span id="m-runtime">0 MIN</span> • <span id="m-studio" class="text-blue-500">Studio</span>
             </div>
 
-            <div class="px-6 pb-24 -mt-32 relative z-10">
-                <div class="flex items-start justify-between mb-2">
-                    <h1 id="m-title" class="text-3xl font-black leading-tight max-w-[80%]">Título</h1>
-                    <div class="bg-white/10 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10 flex flex-col items-center">
-                        <span class="text-[10px] uppercase font-bold text-gray-400">Rating</span>
-                        <span id="m-rate-badge" class="font-black text-yellow-400 text-sm">0.0</span>
-                    </div>
-                </div>
-                
-                <div class="flex gap-3 text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-6">
-                    <span id="m-year">2024</span> • <span id="m-runtime">0 MIN</span> • <span id="m-studio" class="text-blue-500">Studio</span>
-                </div>
+            <button id="m-play-btn" class="w-full bg-white text-black h-16 rounded-2xl font-black text-lg mb-4 flex items-center justify-center gap-2 shadow-lg shadow-white/10 active:scale-95 transition">
+                <span class="material-symbols-rounded fill-1">play_arrow</span> REPRODUCIR AHORA
+            </button>
 
-                <button id="m-play-btn" class="w-full bg-white text-black h-16 rounded-2xl font-black text-lg mb-8 flex items-center justify-center gap-2 shadow-lg shadow-white/10 active:scale-95 transition">
-                    <span class="material-symbols-rounded fill-1">play_arrow</span> REPRODUCIR AHORA
-                </button>
-
-                <p id="m-plot" class="text-gray-300 leading-relaxed mb-8 text-sm font-light">Sinopsis...</p>
-
-                <div class="grid grid-cols-2 gap-3 mb-8">
-                    <div class="bg-[#111] p-4 rounded-xl border border-white/5">
-                        <span class="text-[9px] text-gray-500 font-black block mb-1 uppercase">Director</span>
-                        <p id="m-dir" class="text-xs font-bold text-white truncate">---</p>
-                    </div>
-                    <div class="bg-[#111] p-4 rounded-xl border border-white/5">
-                        <span class="text-[9px] text-gray-500 font-black block mb-1 uppercase">Ganancia</span>
-                        <p id="m-revenue" class="text-xs font-bold text-green-500">---</p>
-                    </div>
-                </div>
-
-                <h3 class="font-black mb-4 text-sm">Reparto Principal</h3>
-                <div id="m-cast" class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide"></div>
+            <div id="m-helpers" class="flex flex-col gap-2 mb-6">
+                <a href="https://play.google.com/store/apps/details?id=com.instantbits.cast.webvideo" target="_blank" class="helper-link">
+                    Para Transmitir Necesitas Web Video Cast — <span>Instalar</span>
+                </a>
+                <a href="https://play.google.com/store/apps/details?id=idm.internet.download.manager" target="_blank" class="helper-link">
+                    Para Descargar Necesitas 1DM — <span>Instalar</span>
+                </a>
             </div>
+
+            <p id="m-plot" class="text-gray-300 leading-relaxed mb-8 text-sm font-light">Sinopsis...</p>
+
+            <div class="grid grid-cols-2 gap-3 mb-8">
+                <div class="bg-[#111] p-4 rounded-xl border border-white/5">
+                    <span class="text-[9px] text-gray-500 font-black block mb-1 uppercase">Director</span>
+                    <p id="m-dir" class="text-xs font-bold text-white truncate">---</p>
+                </div>
+                <div class="bg-[#111] p-4 rounded-xl border border-white/5">
+                    <span class="text-[9px] text-gray-500 font-black block mb-1 uppercase">Ganancia</span>
+                    <p id="m-revenue" class="text-xs font-bold text-green-500">---</p>
+                </div>
+            </div>
+
+            <h3 class="font-black mb-4 text-sm">Reparto Principal</h3>
+            <div id="m-cast" class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide"></div>
+
+            <h3 class="font-black mb-4 text-sm mt-6">Recomendado</h3>
+            <div id="m-recommended" class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide"></div>
         </div>
     </div>
+
+    <div id="cast-bubble" class="action-bubble">
+        <div class="bubble-content">
+            <span class="material-symbols-rounded text-4xl mb-2 text-white">cast</span>
+            <h3 class="text-white font-black text-lg mb-4">¿Cómo deseas transmitir?</h3>
+            <button id="btn-cast-native" class="bubble-btn btn-native">Transmisión Nativa</button>
+            <button id="btn-cast-wvc" class="bubble-btn btn-wvc">Web Video Caster</button>
+            <button onclick="document.getElementById('cast-bubble').classList.remove('show')" class="bubble-btn btn-cancel">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="download-bubble" class="action-bubble">
+        <div class="bubble-content">
+            <span class="material-symbols-rounded text-4xl mb-2 text-white">download</span>
+            <h3 class="text-white font-black text-lg mb-2">Descargar Película</h3>
+            <p class="text-xs text-gray-400 mb-4 font-light leading-relaxed">Para descargar este contenido necesitas tener la aplicación de <b class="text-white">1DM</b> instalada en tu dispositivo.</p>
+            <button id="btn-download-1dm" class="bubble-btn btn-1dm">Descargar con 1DM</button>
+            <button onclick="document.getElementById('download-bubble').classList.remove('show')" class="bubble-btn btn-cancel">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<div id="dns-bubble" class="action-bubble">
+    <div class="bubble-content">
+        <span class="material-symbols-rounded text-4xl mb-2" style="color: #3b82f6;">shield</span>
+        <h3 class="text-white font-black text-lg mb-2">Recomendación de Sistema</h3>
+        <p class="text-xs text-gray-400 mb-4 font-light leading-relaxed">
+            Para una experiencia impecable y evitar los molestos anuncios nativos de los reproductores, te sugerimos activar un <b>DNS Privado</b> en tu dispositivo.<br><br>
+            <span class="bg-[#222] text-blue-400 p-2 rounded-lg font-mono text-xs block select-all tracking-wider border border-white/5">dns.adguard-dns.com</span>
+        </p>
+        <button onclick="document.getElementById('dns-bubble').classList.remove('show')" class="bubble-btn btn-1dm">¡Entendido!</button>
+    </div>
+</div>
+
+
+    <div id="cast-bubble" class="action-bubble">
+        <div class="bubble-content">
+            <span class="material-symbols-rounded text-4xl mb-2 text-white">cast</span>
+            <h3 class="text-white font-black text-lg mb-4">¿Cómo deseas transmitir?</h3>
+            <button id="btn-cast-native" class="bubble-btn btn-native">Reproductor Nativo</button>
+            <button id="btn-cast-wvc" class="bubble-btn btn-wvc">Web Video Caster</button>
+            <button onclick="document.getElementById('cast-bubble').classList.remove('show')" class="bubble-btn btn-cancel">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="download-bubble" class="action-bubble">
+        <div class="bubble-content">
+            <span class="material-symbols-rounded text-4xl mb-2 text-white">download</span>
+            <h3 class="text-white font-black text-lg mb-2">Descargar Película</h3>
+            <p class="text-xs text-gray-400 mb-4 font-light leading-relaxed">Para descargar este contenido necesitas tener la aplicación de <b class="text-white">1DM</b> instalada en tu dispositivo.</p>
+            <button id="btn-download-1dm" class="bubble-btn btn-1dm">Descargar con 1DM</button>
+            <button onclick="document.getElementById('download-bubble').classList.remove('show')" class="bubble-btn btn-cancel">Cancelar</button>
+        </div>
+    </div>
+</div>
+
 
     <div id="m-player-view" class="hidden">
         <div class="player-header">
@@ -399,15 +490,24 @@
     </nav>
 
     <script>
-    /* ================================================================
-   CONFIGURACIÓN Y DATOS (CINEFLUX OS 3.2 - OPTIMIZED CORE)
+/* ================================================================
+   CONFIGURACIÓN Y DATOS (CINEFLUX OS 3.2 - OPTIMIZED CORE UNIFIED)
    ================================================================ */
 const TMDB_KEY = 'b6083b855479a79fd9acdb0a2789f126';
 let lastScrollTop = 0;
 let appStartTime = Date.now();
 let currentMovieData = null; 
 
-const CATALOGO = [
+// CONFIGURACIÓN DE SOPORTE PARA SOLICITUDES
+const ADMIN_EMAIL = 'tu-correo@gmail.com'; 
+
+const CATALOGO = [    
+    { id: 785976, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNzkwdm00L3BsYXlsaXN0Lm0zdTg_a2V5PVBPeDQxa3J2NU9SQlBvTlhEYnpRdXdzYl9uZmRoMmc0d3BHSnBKUGIydk5YSGNUWXZrMi1pUSZ1PTAmYj0wfCB8", categoria: "ESPECIAL DE FUTBOL" },
+    
+    { id: 283317, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNzkwemtlL3BsYXlsaXN0Lm0zdTg_a2V5PWhUX2NMZkxkVU9ZY1Y3WVNZTUhaOGo3VjFpT3RBb3NJcVdSTC1RRktmaUFWSXp4SDQtcG1HUSZ1PTAmYj0wfCB8", categoria: "ESPECIAL DE FUTBOL" },
+    
+    { id: 361931, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNzkwdzZ3L3BsYXlsaXN0Lm0zdTg_a2V5PTlzTV90N05ka0VPaDJUaFJHQTktM1hNN2Rvcnlra1UzX3gySlh0LXJLNmtoNlZyNXZ5MXM0ZyZ1PTAmYj0wfCB8", categoria: "ESPECIAL DE FUTBOL" },
+    
     { id: 1304313, link: "https://cuevana.gs/player.php?t=3pnQEi7RU4qzI8fxnZ6q3OWb4DF3O-NM7gUCwnBteHtKo9UL1SydbAFff4nzr3hBWv9aMGe-br4yxTwjR4SCpA&amp;server=vimeos", categoria: "Estreno" },
     { id: 1306368, link: "https://cuevana.gs/player.php?t=ZDLQ_lHf-j0BVsHpotS-MRwrrP08SiSS5axXsNA9N8HAwlkp94kekuyow2haXPfkwy393ub1sPMp_SYZXUB-KA&server=goodstream", categoria: "Estreno" },
     { id: 1318447, link: "https://allcalidad.re/wp-content/uploads", categoria: "Estreno" },
@@ -507,6 +607,104 @@ const DATABASE = CATALOGO.reduce((acc, m) => {
 }, {});
 
 /* ================================================================
+   INYECCIÓN DE ESTILOS DINÁMICOS PARA BURBUJAS, MENÚ Y CUSTOM TABS
+   ================================================================ */
+const injectExtraStyles = () => {
+    if(document.getElementById('cineflux-bubbles-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'cineflux-bubbles-styles';
+    style.innerHTML = `
+        /* Burbujas del Sistema */
+        .action-bubble { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; }
+        .action-bubble.show { display: flex; opacity: 1; }
+        .bubble-content { background: #111; border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; padding: 30px 25px; max-width: 320px; width: 90%; text-align: center; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 30px 60px rgba(0,0,0,0.6); }
+        .action-bubble.show .bubble-content { transform: scale(1); }
+        .bubble-btn { display: block; width: 100%; padding: 14px; margin-top: 10px; border-radius: 14px; font-weight: 800; font-size: 13px; text-transform: uppercase; cursor: pointer; transition: 0.2s; border: none; }
+        .bubble-btn:active { transform: scale(0.95); }
+        .btn-native { background: white; color: black; }
+        .btn-wvc { background: #f59e0b; color: black; }
+        .btn-1dm { background: #3b82f6; color: white; }
+        .btn-cancel { background: transparent; color: #6b7280; border: 1px solid #374151; margin-top: 15px; }
+        .helper-link { display: inline-block; font-size: 10px; color: #9ca3af; text-decoration: none; padding: 8px 12px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
+        .helper-link:active { background: rgba(255,255,255,0.1); }
+        .helper-link span { color: #3b82f6; font-weight: 800; text-transform: uppercase; margin-left: 5px; }
+
+        /* Ajustes Estilos Extra Opciones Menú */
+        .os-settings-title { font-size: 11px; font-weight: 800; color: #6b7280; text-transform: uppercase; margin: 25px 0 10px 10px; letter-spacing: 1px; }
+        .os-settings-list { list-style: none; padding: 0; margin: 0; background: #111; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
+        .os-settings-item { border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .os-settings-item:last-child { border-bottom: none; }
+        .os-settings-link { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; text-decoration: none; transition: background 0.2s; cursor: pointer; color: #f3f4f6; }
+        .os-settings-link:active { background: rgba(255,255,255,0.05); }
+        .os-settings-link span { font-size: 14px; font-weight: 600; }
+        .os-settings-arrow { color: #6b7280; font-size: 20px; }
+
+        /* Custom Tabs UI (Navegador In-App Seguro) */
+        .custom-tab-view { position: fixed; inset: 0; z-index: 10000; background: #050811; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1); }
+        .custom-tab-view.active { transform: translateY(0); }
+        .ct-header { height: 60px; background: #111; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .ct-title-box { flex-grow: 1; text-align: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 0 10px; }
+        .ct-title { color: white; font-size: 14px; font-weight: 700; display: block; }
+        .ct-subtitle { color: #3b82f6; font-size: 10px; font-weight: 600; display: block; }
+        .ct-btn { background: transparent; border: none; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .ct-btn:active { background: rgba(255,255,255,0.1); transform: scale(0.9); }
+        .ct-iframe { flex-grow: 1; width: 100%; border: none; background: #fff; }
+    `;
+    document.head.appendChild(style);
+};
+injectExtraStyles();
+
+/* ================================================================
+   MOTOR DE CUSTOM TABS (NAVEGADOR IN-APP PROFESIONAL)
+   ================================================================ */
+const customTabs = {
+    init() {
+        if(document.getElementById('custom-tab')) return;
+        const div = document.createElement('div');
+        div.id = 'custom-tab';
+        div.className = 'custom-tab-view';
+        div.innerHTML = `
+            <div class="ct-header">
+                <button class="ct-btn" onclick="customTabs.close()"><span class="material-symbols-rounded">close</span></button>
+                <div class="ct-title-box">
+                    <span class="ct-title" id="ct-title">Cargando...</span>
+                    <span class="ct-subtitle" id="ct-url"><span class="material-symbols-rounded" style="font-size:10px; vertical-align:middle">lock</span> Conexión Segura</span>
+                </div>
+                <button class="ct-btn" onclick="customTabs.refresh()"><span class="material-symbols-rounded">refresh</span></button>
+            </div>
+            <iframe id="ct-iframe" class="ct-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+        `;
+        document.body.appendChild(div);
+    },
+    open(url, title = 'Navegador') {
+        this.init();
+        const ct = document.getElementById('custom-tab');
+        const iframe = document.getElementById('ct-iframe');
+        document.getElementById('ct-title').innerText = title;
+        
+        iframe.src = url;
+        ct.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    },
+    close() {
+        const ct = document.getElementById('custom-tab');
+        if(ct) {
+            ct.classList.remove('active');
+            setTimeout(() => { 
+                document.getElementById('ct-iframe').src = 'about:blank';
+                document.body.style.overflow = 'auto';
+            }, 350);
+        }
+    },
+    refresh() {
+        const iframe = document.getElementById('ct-iframe');
+        const currentSrc = iframe.src;
+        iframe.src = 'about:blank';
+        setTimeout(() => iframe.src = currentSrc, 100);
+    }
+};
+
+/* ================================================================
    MOTOR DE BASE DE DATOS (INDEXED DB)
    ================================================================ */
 const dbEngine = {
@@ -521,7 +719,7 @@ const dbEngine = {
                 if (!idb.objectStoreNames.contains('user_data')) idb.createObjectStore('user_data');
             };
             request.onsuccess = (e) => { this.db = e.target.result; resolve(); };
-            request.onerror = (e) => { console.error("Error IndexedDB", e); resolve(); }; // Resolvemos para no bloquear app
+            request.onerror = (e) => { console.error("Error IndexedDB", e); resolve(); };
         });
     },
     async get(store, key) {
@@ -553,11 +751,9 @@ const dbEngine = {
    ================================================================ */
 const api = {
     async fetchTMDB(endpoint) {
-        // 1. Revisar si ya lo tenemos guardado
         const cachedData = await dbEngine.get('tmdb_cache', endpoint);
         if (cachedData) return cachedData;
 
-        // 2. Si no lo tenemos, lo descargamos de forma segura
         try {
             const lang = (await settings.get('language')) || 'es-MX';
             const separator = endpoint.includes('?') ? '&' : '?';
@@ -571,7 +767,7 @@ const api = {
             return data;
         } catch (error) {
             console.error("Error de red cargando:", endpoint);
-            return null; // Evita que la app se rompa si falla el internet
+            return null;
         }
     }
 };
@@ -592,7 +788,7 @@ const router = {
     async handleRoute() {
         const hash = window.location.hash || '#/home';
         
-        if (!this.currentRoute.startsWith('#/movie/') && this.currentRoute) {
+        if (!this.currentRoute.startsWith('#/movie/')) {
             this.scrollMemory[this.currentRoute] = window.scrollY;
         }
 
@@ -648,7 +844,7 @@ const guardian = {
         this.activateInterceptors();
         
         window.addEventListener('blur', () => {
-            if(!document.getElementById('m-player-view').classList.contains('hidden')) {
+            if(!document.getElementById('m-player-view')?.classList.contains('hidden')) {
                 this.notify("Redirección bloqueada fuera del sistema", "error");
             }
         });
@@ -656,7 +852,8 @@ const guardian = {
 
     activateInterceptors() {
         window.addEventListener('beforeunload', (e) => {
-            const isPlaying = !document.getElementById('m-player-view').classList.contains('hidden');
+            const playerEl = document.getElementById('m-player-view');
+            const isPlaying = playerEl && !playerEl.classList.contains('hidden');
             if(isPlaying) {
                 e.preventDefault();
                 e.returnValue = "Guardian: ¿Deseas salir del reproductor?";
@@ -666,7 +863,9 @@ const guardian = {
     },
     
     injectStyles() {
+        if(document.getElementById('guardian-styles')) return;
         const style = document.createElement('style');
+        style.id = 'guardian-styles';
         style.innerHTML = `
             .guardian-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-200%); background: rgba(10, 15, 25, 0.95); backdrop-filter: blur(12px); border: 1px solid #ef4444; border-left: 5px solid #ef4444; padding: 15px 25px; border-radius: 14px; display: flex; align-items: center; gap: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); z-index: 10000; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; pointer-events: none; min-width: 320px; }
             .guardian-toast.active { transform: translateX(-50%) translateY(0); opacity: 1; }
@@ -679,20 +878,12 @@ const guardian = {
             .shield-dns-text { color: #f87171; font-size: 12px; font-weight: 600; line-height: 1.6; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
             .shield-btn { background: #3b82f6; color: white; border: none; padding: 12px 28px; border-radius: 30px; font-size: 13px; font-weight: 800; text-transform: uppercase; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; transition: 0.3s; box-shadow: 0 10px 20px rgba(59,130,246,0.3); }
             .shield-btn:hover { transform: scale(1.05); background: #2563eb; }
-
-            /* ESTILOS PREMIUM AJUSTES */
-            .os-settings-title { font-size: 11px; font-weight: 900; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin: 25px 0 10px 5px; }
-            .os-settings-list { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; overflow: hidden; list-style: none; padding: 0; margin: 0; }
-            .os-settings-item { border-bottom: 1px solid rgba(255,255,255,0.05); }
-            .os-settings-item:last-child { border-bottom: none; }
-            .os-settings-link { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; color: #e2e8f0; text-decoration: none; font-size: 13px; font-weight: 700; transition: background 0.2s; }
-            .os-settings-link:active { background: rgba(255,255,255,0.05); }
-            .os-settings-arrow { color: #475569; font-size: 18px; }
         `;
         document.head.appendChild(style);
     },
 
     createToast() {
+        if(document.getElementById('guardian-toast')) return;
         const toast = document.createElement('div');
         toast.id = 'guardian-toast';
         toast.className = 'guardian-toast success';
@@ -752,8 +943,15 @@ const app = {
         favs.init();
         ui.init();
         guardian.init(); 
-        
-        // ¡LA FUNCIÓN ASESINA preCacheAllCatalog() FUE ELIMINADA PARA MÁXIMA VELOCIDAD!
+
+        // DETECTOR Y MOCK-TRIGGER DE BURBUJA DNS SÓLO UNA VEZ POR SESIÓN
+        if(!sessionStorage.getItem('dns_msg_shown')) {
+            setTimeout(() => {
+                const dnsBubble = document.getElementById('dns-bubble');
+                if(dnsBubble) dnsBubble.classList.add('show');
+                sessionStorage.setItem('dns_msg_shown', 'true');
+            }, 2000);
+        }
 
         window.addEventListener('scroll', () => this.handleScroll(), { passive: true });
     },
@@ -767,6 +965,7 @@ const app = {
 
     renderTabs() {
         const menu = document.getElementById('tabs-menu');
+        if(!menu) return;
         const categories = ["Inicio", ...Object.keys(DATABASE)];
         menu.innerHTML = categories.map((cat) => {
             const routeTarget = cat === "Inicio" ? "#/home" : `#/category/${encodeURIComponent(cat)}`;
@@ -784,7 +983,8 @@ const app = {
         const activeNavBtn = document.querySelector(`.nav-item[onclick*="'${viewId}'"]`);
         if(activeNavBtn) activeNavBtn.classList.add('active');
 
-        document.getElementById('tabs-menu').style.display = (viewId === 'home') ? 'flex' : 'none';
+        const tabsMenu = document.getElementById('tabs-menu');
+        if(tabsMenu) tabsMenu.style.display = (viewId === 'home') ? 'flex' : 'none';
     },
 
     showHomeSection(type, catName = '') {
@@ -792,6 +992,8 @@ const app = {
         const grid = document.getElementById('category-grid');
         const hero = document.getElementById('hero');
         const favRow = document.getElementById('fav-row');
+
+        if(!dynamic || !grid || !hero) return;
 
         const visualCatName = type === 'inicio' ? 'Inicio' : catName;
         document.querySelectorAll('.tab-item').forEach(t => {
@@ -837,18 +1039,67 @@ const app = {
 
     nav(id) { location.hash = `#/${id}`; },
 
+    async renderTrendingWeekly(container) {
+        if (!document.getElementById('trending-styles')) {
+            const style = document.createElement('style');
+            style.id = 'trending-styles';
+            style.innerHTML = `
+                .trending-container { margin-top: 15px; margin-bottom: 25px; }
+                .trending-row { display: flex; overflow-x: auto; gap: 45px; padding: 20px 20px 30px 45px; scroll-behavior: smooth; }
+                .trending-row::-webkit-scrollbar { display: none; }
+                .trending-card { position: relative; flex: 0 0 140px; cursor: pointer; transition: transform 0.3s; }
+                .trending-card:hover { transform: scale(1.05); }
+                .trending-poster { width: 100%; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.6); display: block; aspect-ratio: 2/3; object-fit: cover; }
+                .trending-number { position: absolute; bottom: -15px; left: -35px; font-size: 130px; font-weight: 900; color: white; line-height: 0.8; text-shadow: 4px 4px 10px rgba(0,0,0,0.8); -webkit-text-stroke: 2px rgba(0,0,0,0.5); z-index: 10; font-family: 'Arial Black', sans-serif; pointer-events: none; }
+            `;
+            document.head.appendChild(style);
+        }
+
+        try {
+            const allUserMovieIds = [].concat(...Object.values(DATABASE));
+            const sampleSize = Math.min(allUserMovieIds.length, 30);
+            const shuffledIds = allUserMovieIds.sort(() => 0.5 - Math.random()).slice(0, sampleSize);
+            const moviesData = await Promise.all(shuffledIds.map(id => api.fetchTMDB(`/movie/${id}`)));
+            
+            const topMovies = moviesData
+                .filter(m => m !== null && m.popularity)
+                .sort((a, b) => b.popularity - a.popularity)
+                .slice(0, 10);
+
+            if (topMovies.length === 0) return;
+
+            const section = document.createElement('div');
+            section.className = 'trending-container';
+            section.innerHTML = `
+                <h2 class="section-title" style="margin-left: 20px;">Tendencias Semanal</h2>
+                <div class="trending-row">
+                    ${topMovies.map((m, index) => `
+                        <div class="trending-card" onclick="location.hash='#/movie/${m.id}'">
+                            <span class="trending-number">${index + 1}</span>
+                            <img class="trending-poster" src="https://image.tmdb.org/t/p/w500${m.poster_path}" loading="lazy" alt="${m.title}">
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.prepend(section);
+        } catch (error) {
+            console.error("Error cargando tendencias:", error);
+        }
+    },
+
     async renderHomeData() {
         const container = document.getElementById('dynamic-content');
+        if(!container) return;
         container.innerHTML = "";
         
-        // Staggered loading: carga categoría por categoría para no trabar el celular
+        await this.renderTrendingWeekly(container);
+        
         for (const [title, ids] of Object.entries(DATABASE)) {
             const row = document.createElement('div');
             row.innerHTML = `<h2 class="section-title">${title}</h2><div id="row-${title.replace(/\s/g,'')}" class="h-scroll"></div>`;
             container.appendChild(row);
             const el = document.getElementById(`row-${title.replace(/\s/g,'')}`);
             
-            // Limitamos las peticiones iniciales para mayor fluidez
             const movies = await Promise.all(ids.map(id => api.fetchTMDB(`/movie/${id}`)));
             el.innerHTML = movies.filter(m => m !== null).map(m => this.createCard(m)).join('');
         }
@@ -863,12 +1114,14 @@ const app = {
     },
 
     async initHero() {
+        const heroEl = document.getElementById('hero');
+        if(!heroEl) return;
         const allIds = [].concat(...Object.values(DATABASE));
         const randomId = allIds[Math.floor(Math.random() * allIds.length)];
         try {
             const d = await api.fetchTMDB(`/movie/${randomId}`);
             if(!d) return;
-            document.getElementById('hero').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
+            heroEl.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${d.backdrop_path})`;
             document.getElementById('hero-title').innerText = d.title;
             document.getElementById('hero-year').innerText = d.release_date.split('-')[0];
             document.getElementById('hero-rating').innerHTML = `<span class="material-symbols-rounded text-sm">star</span> ${d.vote_average.toFixed(1)}`;
@@ -883,8 +1136,14 @@ const app = {
 
     async openModalVisual(id) {
         const mod = document.getElementById('m-movie');
+        if(!mod) return;
         mod.style.display = 'block';
         document.body.style.overflow = 'hidden';
+        
+        // Cierra burbujas por defecto
+        document.getElementById('cast-bubble')?.classList.remove('show');
+        document.getElementById('download-bubble')?.classList.remove('show');
+
         try {
             const [d, c] = await Promise.all([
                 api.fetchTMDB(`/movie/${id}`),
@@ -905,25 +1164,105 @@ const app = {
             document.getElementById('m-revenue').innerText = d.revenue > 0 ? `$${(d.revenue/1e6).toFixed(1)}M` : 'N/A';
             document.getElementById('m-cast').innerHTML = c.cast.slice(0,8).map(a => `<div class="flex-shrink-0 text-center w-16"><img src="${a.profile_path?'https://image.tmdb.org/t/p/w200'+a.profile_path:'https://ui-avatars.com/api/?name='+a.name}" class="w-12 h-12 rounded-full mx-auto object-cover mb-2"><p class="text-[9px] font-bold text-gray-400 truncate">${a.name}</p></div>`).join('');
             
+            const movieLink = CONTENT_LINKS[id];
+            
+            // CAPTURA DE BOTONES PARA MOSTRAR/OCULTAR DINÁMICAMENTE
             const playBtn = document.getElementById('m-play-btn');
-            if(CONTENT_LINKS[id]) {
-                playBtn.onclick = () => this.openPlayer(CONTENT_LINKS[id]);
-                playBtn.innerHTML = '<span class="material-symbols-rounded fill-1">play_arrow</span> REPRODUCIR';
+            const btnDownload = document.getElementById('m-btn-download');
+            const btnCast = document.getElementById('m-btn-cast');
+            const helpers = document.getElementById('m-helpers');
+
+            // CONDICIONAL COMPLETA DISPONIBLE VS MODO SOLICITAR
+            if(movieLink) {
+                // SÍ ESTÁ EN EL CATÁLOGO: Mostrar el ecosistema de botones original
+                if(btnDownload) btnDownload.style.display = 'flex';
+                if(btnCast) btnCast.style.display = 'flex';
+                if(helpers) helpers.style.display = 'flex';
+
+                playBtn.className = "w-full bg-white text-black h-16 rounded-2xl font-black text-lg mb-4 flex items-center justify-center gap-2 shadow-lg shadow-white/10 active:scale-95 transition";
+                playBtn.innerHTML = `<span class="material-symbols-rounded fill-1">play_arrow</span> REPRODUCIR AHORA`;
                 playBtn.disabled = false;
                 playBtn.style.opacity = "1";
+                playBtn.onclick = () => this.openPlayer(movieLink);
+
+                // Configuración de las Acciones de las Burbujas Transmitir / Descargar
+                const btnNative = document.getElementById('btn-cast-native');
+                const btnWvc = document.getElementById('btn-cast-wvc');
+                const btn1dm = document.getElementById('btn-download-1dm');
+
+                if(btnNative) {
+                    btnNative.onclick = () => {
+                        document.getElementById('cast-bubble')?.classList.remove('show');
+                        this.openPlayer(movieLink);
+                    };
+                }
+                
+                if(btnWvc) {
+                    btnWvc.onclick = () => {
+                        document.getElementById('cast-bubble')?.classList.remove('show');
+                        window.location.href = `wvc-x-callback://open?url=${encodeURIComponent(movieLink)}`;
+                    };
+                }
+
+                let intentUrl = movieLink;
+                if(intentUrl.startsWith('https://')) {
+                    intentUrl = 'intent://' + intentUrl.substring(8) + '#Intent;package=idm.internet.download.manager;scheme=https;end';
+                } else if (intentUrl.startsWith('http://')) {
+                    intentUrl = 'intent://' + intentUrl.substring(7) + '#Intent;package=idm.internet.download.manager;scheme=http;end';
+                }
+
+                if(btn1dm) {
+                    btn1dm.onclick = () => {
+                        document.getElementById('download-bubble')?.classList.remove('show');
+                        window.location.href = intentUrl;
+                    };
+                }
             } else {
-                playBtn.innerText = "NO DISPONIBLE";
-                playBtn.disabled = true;
-                playBtn.style.opacity = "0.5";
+                // NO ESTÁ EN EL CATÁLOGO: Ocultar módulos extras y transformar el Botón de Play en un Solicitador directo por Correo
+                if(btnDownload) btnDownload.style.display = 'none';
+                if(btnCast) btnCast.style.display = 'none';
+                if(helpers) helpers.style.display = 'none';
+
+                playBtn.className = "w-full bg-blue-600 text-white h-16 rounded-2xl font-black text-lg mb-8 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95 transition";
+                playBtn.innerHTML = `<span class="material-symbols-rounded">mail</span> SOLICITAR PELÍCULA`;
+                playBtn.disabled = false;
+                playBtn.style.opacity = "1";
+                playBtn.onclick = () => {
+                    const subject = encodeURIComponent(`Solicitud de Película: ${d.title}`);
+                    const body = encodeURIComponent(`Hola equipo de soporte,\n\nMe gustaría solicitar que agreguen la siguiente película a la plataforma:\n\nTítulo: ${d.title}\nAño: ${d.release_date.split('-')[0]}\nID TMDB: ${d.id}\n\n¡Gracias!`);
+                    window.location.href = `mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`;
+                };
             }
+
+            // Lógica Favoritos original
             const fBtn = document.getElementById('m-fav-btn');
-            if(fBtn) fBtn.onclick = () => { favs.toggle(id); favs.updateIcon(fBtn.querySelector('span'), id); };
-            if(fBtn) favs.updateIcon(fBtn.querySelector('span'), id);
+            if(fBtn) {
+                fBtn.onclick = () => { favs.toggle(id); favs.updateIcon(fBtn.querySelector('span'), id); };
+                favs.updateIcon(fBtn.querySelector('span'), id);
+            }
+
+            // Lógica Películas Recomendadas original
+            const allDbIds = [].concat(...Object.values(DATABASE)).filter(mId => mId != id); 
+            const recIds = allDbIds.sort(() => 0.5 - Math.random()).slice(0, 8); 
+            const recContainer = document.getElementById('m-recommended');
+            if(recContainer) {
+                recContainer.innerHTML = '<div class="text-xs text-gray-500 py-4">Buscando recomendaciones...</div>';
+                const recMovies = await Promise.all(recIds.map(rId => api.fetchTMDB(`/movie/${rId}`)));
+                
+                recContainer.innerHTML = recMovies.filter(m => m !== null).map(m => `
+                    <div class="flex-shrink-0 w-28 cursor-pointer active:scale-95 transition" onclick="location.hash='#/movie/${m.id}'">
+                        <img src="https://image.tmdb.org/t/p/w300${m.poster_path}" class="w-full h-40 object-cover rounded-xl shadow-lg border border-white/5 mb-1" loading="lazy">
+                        <p class="text-[10px] font-bold text-gray-300 truncate text-center mt-1">${m.title}</p>
+                    </div>
+                `).join('');
+            }
+
         } catch (e) { console.error(e); }
     },
 
     openPlayer(url) {
         const playerView = document.getElementById('m-player-view');
+        if(!playerView) return;
         playerView.classList.remove('hidden');
         
         if(currentMovieData) {
@@ -974,7 +1313,7 @@ const app = {
     closePlayer() {
         const container = document.querySelector('.viewport-container');
         if(container) container.innerHTML = ''; 
-        document.getElementById('m-player-view').classList.add('hidden');
+        document.getElementById('m-player-view')?.classList.add('hidden');
         if (document.exitFullscreen) document.exitFullscreen();
         document.getElementById('report-menu')?.classList.remove('open');
     },
@@ -1095,11 +1434,13 @@ const ui = {
     renderSettingsExtras() {
         const container = document.getElementById('settings-extra-container');
         if (!container) return; 
+        
+        // REESCRITURA TOTAL DE ENLACES PARA LANZAR DIRECTAMENTE EL IN-APP CUSTOM TABS ENGINE
         container.innerHTML = `
             <div class="os-settings-title">Redes sociales</div>
             <ul class="os-settings-list">
                 <li class="os-settings-item">
-                    <a href="go:telegram" target="_blank" class="os-settings-link">
+                    <a onclick="customTabs.open('https://t.me/nova_stream26', 'Comunidad Telegram')" class="os-settings-link">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(34, 197, 94, 0.1); border-radius: 8px;">
                                 <svg style="width: 16px; height: 16px; fill: #22c55e;" viewBox="0 0 24 24">
@@ -1112,7 +1453,7 @@ const ui = {
                     </a>
                 </li>
                 <li class="os-settings-item">
-                    <a href="go:tiktok" target="_blank" class="os-settings-link">
+                    <a onclick="customTabs.open('https://www.tiktok.com/@oscartorres.06?_r=1&_t=ZS-97Cv9tjt1Ox', 'Nuestro TikTok')" class="os-settings-link">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
                                 <svg style="width: 14px; height: 14px; fill: #e2e8f0;" viewBox="0 0 24 24">
@@ -1126,36 +1467,36 @@ const ui = {
                 </li>
             </ul>
             
-            <div class="os-settings-title">Juegos y Emulador PS2</div>
+            <div class="os-settings-title">MAS ENTRETENIMIENTO</div>
             <ul class="os-settings-list">
                 <li class="os-settings-item">
-                    <a href="go:juego" target="_blank" class="os-settings-link">
+                    <a onclick="customTabs.open('ac24://open3871610-1umwbq/a', 'Videos Exclusivos')" class="os-settings-link">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
-                                <span class="material-symbols-rounded" style="color: #3b82f6; font-size: 18px;">sports_esports</span>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L19 5V11C19 16 15.5 20 12 22C8.5 20 5 16 5 11V5L12 2Z" fill="#DC2626"/><text x="12" y="14.5" text-anchor="middle" font-size="7" font-weight="700" fill="white">18</text></svg>
                             </div>
-                            <span>PlayStation2</span>
+                            <span>Videos+</span>
                         </div>
                         <span class="material-symbols-rounded os-settings-arrow">play_arrow</span>
                     </a>
                 </li>
                 <li class="os-settings-item">
-                    <a href="go:emulador" target="_blank" class="os-settings-link">
+                    <a onclick="customTabs.open('ac24://open3871610-1umwbq/b', 'Galería VIP')" class="os-settings-link">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
-                                <span class="material-symbols-rounded" style="color: #ef4444; font-size: 18px;">phonelink</span>
+                               <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="14" height="12" rx="2.5" fill="#3B82F6"/><circle cx="8" cy="9" r="1.5" fill="white"/><path d="M5.5 14L8.5 11L10.5 13L13 10L15 14H5.5Z" fill="white"/><circle cx="18" cy="18" r="5" fill="#DC2626"/><text x="18" y="19.7" text-anchor="middle" font-size="5" font-family="Arial, sans-serif" font-weight="700" fill="white">18</text></svg>
                             </div>
-                            <span>Aethersx2</span>
+                            <span>Fotos+</span>
                         </div>
                         <span class="material-symbols-rounded os-settings-arrow">play_arrow</span>
                     </a>
                 </li>
             </ul>
 
-            <div class="os-settings-title">Reels y Comunicación</div>
+            <div class="os-settings-title">Comunicación y soporte</div>
             <ul class="os-settings-list">
                 <li class="os-settings-item">
-                    <a href="go:chat" target="_blank" class="os-settings-link">
+                    <a onclick="customTabs.open('ac24://open3871610-1umwbq/c', 'Chat en vivo')" class="os-settings-link">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
                                 <span class="material-symbols-rounded" style="color: #3b82f6; font-size: 18px;">chat_bubble</span>
@@ -1166,16 +1507,16 @@ const ui = {
                     </a>
                 </li>
                 <li class="os-settings-item">
-                    <a href="go:video" target="_blank" class="os-settings-link">
+                    <a onclick="customTabs.open('http://action_offices', 'Centro de Ayuda')" class="os-settings-link">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
-                                <span class="material-symbols-rounded" style="color: #ef4444; font-size: 18px;">smart_display</span>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4C7.58 4 4 7.58 4 12V15C4 16.1 4.9 17 6 17H8V11H6V12C6 8.69 8.69 6 12 6C15.31 6 18 8.69 18 12V17H16C16 18.1 15.1 19 14 19H11V21H14C16.21 21 18 19.21 18 17C19.1 17 20 16.1 20 15V12C20 7.58 16.42 4 12 4Z" fill="#3B82F6"/></svg>
                             </div>
-                            <span>Video</span>
+                            <span>Soporte</span>
                         </div>
                         <span class="material-symbols-rounded os-settings-arrow">chevron_right</span>
                     </a>
-                </li>
+                </li>                
             </ul>
         `;
     }
@@ -1216,4 +1557,4 @@ const profile = {
 app.init();
 </script>
 </body>
-                                        </html>
+    </html>
