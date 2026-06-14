@@ -139,6 +139,157 @@
         .report-btn { padding: 10px 15px; border-radius: 10px; background: rgba(255,255,255,0.05); color: white; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
         
         .hidden { display: none !important; }
+        
+        /* Contenedor Oscuro de Fondo */
+.ct-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 99999;
+    display: flex;
+    align-items: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Activación de la Vista */
+.ct-wrapper.ct-active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Cuerpo del Navegador In-App (Se desliza desde abajo) */
+.ct-container {
+    width: 100%;
+    height: 88vh;
+    background: #141416;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    box-shadow: 0 -15px 40px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateY(100%);
+    transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1); /* Rebote premium suave */
+}
+
+.ct-wrapper.ct-active .ct-container {
+    transform: translateY(0);
+}
+
+/* Micro barra de progreso */
+.ct-progress-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    z-index: 20;
+}
+.ct-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #00f2fe, #4facfe);
+    box-shadow: 0 0 8px #00f2fe;
+    transition: width 0.3s ease, opacity 0.3s ease;
+}
+
+/* Cabecera */
+.ct-header {
+    height: 60px;
+    background: #1a1a1e;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+}
+
+/* Barra de dirección simulada */
+.ct-address-bar {
+    flex: 1;
+    background: #0b0b0c;
+    height: 38px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.ct-identity {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.ct-title {
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ct-url {
+    font-family: monospace;
+    font-size: 10px;
+    color: #71717a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Botonería */
+.ct-btn {
+    background: transparent;
+    border: none;
+    color: #a1a1aa;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.ct-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+.ct-close-btn {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+.ct-close-btn:hover {
+    background: rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Iframe */
+.ct-body {
+    flex: 1;
+    background: #ffffff;
+}
+.ct-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+@media (max-width: 480px) {
+    .ct-container { height: 100vh; border-radius: 0; }
+}
     </style>
 </head>
 <body>
@@ -456,8 +607,8 @@
         </div>
 
         <div id="report-menu" class="report-bubble">
-            <a href="xplaymovies@gmail.com" id="btn-report-email" class="report-btn hover:bg-white/10"><span class="material-symbols-rounded text-sm">mail</span> Email</a>
-            <a href="go:telegram" id="btn-report-tg" class="report-btn hover:bg-white/10"><span class="material-symbols-rounded text-sm">send</span> Telegram</a>
+            <a href="mailto:xplaymovies2024@gmail.com" id="btn-report-email" class="report-btn hover:bg-white/10"><span class="material-symbols-rounded text-sm">mail</span> Email</a>
+            <a href="https://t.me/@anonimo_dt" id="btn-report-tg" class="report-btn hover:bg-white/10"><span class="material-symbols-rounded text-sm">send</span> Telegram</a>
         </div>
 
         <div class="player-controls">
@@ -499,7 +650,7 @@ let appStartTime = Date.now();
 let currentMovieData = null; 
 
 // CONFIGURACIÓN DE SOPORTE PARA SOLICITUDES
-const ADMIN_EMAIL = 'tu-correo@gmail.com'; 
+const ADMIN_EMAIL = 'xplaymovies2024@gmail.com'; 
 
 const CATALOGO = [    
     { id: 785976, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNzkwdm00L3BsYXlsaXN0Lm0zdTg_a2V5PVBPeDQxa3J2NU9SQlBvTlhEYnpRdXdzYl9uZmRoMmc0d3BHSnBKUGIydk5YSGNUWXZrMi1pUSZ1PTAmYj0wfCB8", categoria: "ESPECIAL DE FUTBOL" },
@@ -655,54 +806,152 @@ const injectExtraStyles = () => {
 injectExtraStyles();
 
 /* ================================================================
-   MOTOR DE CUSTOM TABS (NAVEGADOR IN-APP PROFESIONAL)
+   MOTOR DE CUSTOM TABS PREMIUM - EDICIÓN INTERCEPTORA FLUIDA
    ================================================================ */
 const customTabs = {
     init() {
-        if(document.getElementById('custom-tab')) return;
+        if (document.getElementById('custom-tab')) return;
+
         const div = document.createElement('div');
         div.id = 'custom-tab';
-        div.className = 'custom-tab-view';
+        div.className = 'ct-wrapper';
         div.innerHTML = `
-            <div class="ct-header">
-                <button class="ct-btn" onclick="customTabs.close()"><span class="material-symbols-rounded">close</span></button>
-                <div class="ct-title-box">
-                    <span class="ct-title" id="ct-title">Cargando...</span>
-                    <span class="ct-subtitle" id="ct-url"><span class="material-symbols-rounded" style="font-size:10px; vertical-align:middle">lock</span> Conexión Segura</span>
+            <div class="ct-container">
+                <div class="ct-progress-container">
+                    <div class="ct-progress-bar" id="ct-progress"></div>
                 </div>
-                <button class="ct-btn" onclick="customTabs.refresh()"><span class="material-symbols-rounded">refresh</span></button>
+                
+                <div class="ct-header">
+                    <button class="ct-btn ct-close-btn" onclick="customTabs.close()"><span class="material-symbols-rounded">close</span></button>
+                    
+                    <div class="ct-address-bar">
+                        <span class="material-symbols-rounded ct-icon-lock" id="ct-lock-icon">lock</span>
+                        <div class="ct-identity">
+                            <span class="ct-title" id="ct-title">Cargando...</span>
+                            <span class="ct-url" id="ct-url">Conexión Optimizada</span>
+                        </div>
+                    </div>
+                    
+                    <button class="ct-btn" onclick="customTabs.refresh()"><span class="material-symbols-rounded">refresh</span></button>
+                    <button class="ct-btn ct-external-btn" id="ct-external" title="Abrir en navegador externo"><span class="material-symbols-rounded">open_in_new</span></button>
+                </div>
+                
+                <div class="ct-body" id="ct-body-area">
+                    <iframe id="ct-iframe" class="ct-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+                </div>
             </div>
-            <iframe id="ct-iframe" class="ct-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
         `;
         document.body.appendChild(div);
+
+        const iframe = document.getElementById('ct-iframe');
+        iframe.addEventListener('load', () => {
+            const progress = document.getElementById('ct-progress');
+            progress.style.width = '100%';
+            setTimeout(() => progress.style.opacity = '0', 300);
+        });
     },
+
     open(url, title = 'Navegador') {
+        if (!url) return;
         this.init();
+
         const ct = document.getElementById('custom-tab');
         const iframe = document.getElementById('ct-iframe');
+        const progress = document.getElementById('ct-progress');
+        const lockIcon = document.getElementById('ct-lock-icon');
+
+        // Protocolos nativos (por ejemplo, esquemas de apps tipo ac24://)
+        if (url.startsWith('ac24://') || url.startsWith('http://action_offices')) {
+            window.open(url, '_blank');
+            return;
+        }
+
+        // Configuración visual básica
         document.getElementById('ct-title').innerText = title;
-        
-        iframe.src = url;
-        ct.classList.add('active');
+        document.getElementById('ct-url').innerText = url.replace(/^https?:\/\/(www\.)?/, '').split(/[?#]/)[0];
+        document.getElementById('ct-external').onclick = () => window.open(url, '_blank');
+
+        lockIcon.innerText = 'verified_user';
+        lockIcon.style.color = '#3b82f6'; // Icono azul premium
+
+        progress.style.width = '0%';
+        progress.style.opacity = '1';
+        ct.classList.add('ct-active');
         document.body.style.overflow = 'hidden';
+
+        setTimeout(() => progress.style.width = '60%', 100);
+
+        // --- TRATAMIENTO PREMIUM ANTI-BLOQUEO ---
+        
+        // Caso A: Si es Telegram público
+        if (url.includes('t.me/') && !url.includes('/joinchat/') && !url.includes('+')) {
+            const username = url.split('t.me/')[1].split('/')[0];
+            iframe.removeAttribute('srcdoc');
+            iframe.src = `https://t.me/${username}?embed=1`;
+        } 
+        // Caso B: Si es TikTok, WhatsApp o enlaces privados que fallan en Iframe directo
+        else if (url.includes('tiktok.com') || url.includes('whatsapp.com') || url.includes('wa.me')) {
+            iframe.src = 'about:blank';
+            
+            // Usamos un puente CORS para descargar la estructura html y romper la cabecera restrictiva
+            fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`)
+                .then(response => {
+                    if (response.ok) return response.json();
+                    throw new Error('Error de red');
+                })
+                .then(data => {
+                    // Inyectamos el contenido directamente en el Iframe para forzar el renderizado
+                    // Añadimos una etiqueta base para que las imágenes y estilos de TikTok se carguen relativos al sitio original
+                    let cleanHtml = `<base href="${url}">` + data.contents;
+                    iframe.srcdoc = cleanHtml;
+                })
+                .catch(() => {
+                    // Respaldo de seguridad fluida si el proxy se satura
+                    iframe.removeAttribute('srcdoc');
+                    iframe.src = url;
+                });
+        } 
+        // Caso C: Páginas web estándar
+        else {
+            iframe.removeAttribute('srcdoc');
+            iframe.src = url;
+        }
     },
+
     close() {
         const ct = document.getElementById('custom-tab');
-        if(ct) {
-            ct.classList.remove('active');
-            setTimeout(() => { 
-                document.getElementById('ct-iframe').src = 'about:blank';
+        if (ct) {
+            ct.classList.remove('ct-active');
+            setTimeout(() => {
+                const iframe = document.getElementById('ct-iframe');
+                if (iframe) {
+                    iframe.removeAttribute('srcdoc');
+                    iframe.src = 'about:blank';
+                }
                 document.body.style.overflow = 'auto';
             }, 350);
         }
     },
+
     refresh() {
         const iframe = document.getElementById('ct-iframe');
-        const currentSrc = iframe.src;
-        iframe.src = 'about:blank';
-        setTimeout(() => iframe.src = currentSrc, 100);
+        if (!iframe) return;
+        
+        if (iframe.srcdoc) {
+            const currentSrcdoc = iframe.srcdoc;
+            iframe.srcdoc = '';
+            setTimeout(() => iframe.srcdoc = currentSrcdoc, 100);
+        } else {
+            const currentSrc = iframe.src;
+            if (currentSrc !== 'about:blank') {
+                iframe.src = 'about:blank';
+                setTimeout(() => iframe.src = currentSrc, 100);
+            }
+        }
     }
 };
+
+document.addEventListener('DOMContentLoaded', () => customTabs.init());
 
 /* ================================================================
    MOTOR DE BASE DE DATOS (INDEXED DB)
@@ -1468,56 +1717,72 @@ const ui = {
             </ul>
             
             <div class="os-settings-title">MAS ENTRETENIMIENTO</div>
-            <ul class="os-settings-list">
-                <li class="os-settings-item">
-                    <a onclick="customTabs.open('ac24://open3871610-1umwbq/a', 'Videos Exclusivos')" class="os-settings-link">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L19 5V11C19 16 15.5 20 12 22C8.5 20 5 16 5 11V5L12 2Z" fill="#DC2626"/><text x="12" y="14.5" text-anchor="middle" font-size="7" font-weight="700" fill="white">18</text></svg>
-                            </div>
-                            <span>Videos+</span>
-                        </div>
-                        <span class="material-symbols-rounded os-settings-arrow">play_arrow</span>
-                    </a>
-                </li>
-                <li class="os-settings-item">
-                    <a onclick="customTabs.open('ac24://open3871610-1umwbq/b', 'Galería VIP')" class="os-settings-link">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
-                               <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="14" height="12" rx="2.5" fill="#3B82F6"/><circle cx="8" cy="9" r="1.5" fill="white"/><path d="M5.5 14L8.5 11L10.5 13L13 10L15 14H5.5Z" fill="white"/><circle cx="18" cy="18" r="5" fill="#DC2626"/><text x="18" y="19.7" text-anchor="middle" font-size="5" font-family="Arial, sans-serif" font-weight="700" fill="white">18</text></svg>
-                            </div>
-                            <span>Fotos+</span>
-                        </div>
-                        <span class="material-symbols-rounded os-settings-arrow">play_arrow</span>
-                    </a>
-                </li>
-            </ul>
+<ul class="os-settings-list">
+
+    <li class="os-settings-item">
+        <a href="ac24://open3871610-1umwbq/c" class="os-settings-link">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2L19 5V11C19 16 15.5 20 12 22C8.5 20 5 16 5 11V5L12 2Z" fill="#DC2626"/>
+                        <text x="12" y="14.5" text-anchor="middle" font-size="7" font-weight="700" fill="white">18</text>
+                    </svg>
+                </div>
+                <span>Videos+</span>
+            </div>
+            <span class="material-symbols-rounded os-settings-arrow">play_arrow</span>
+        </a>
+    </li>
+
+    <li class="os-settings-item">
+        <a href="ac24://open3871610-1umwbq/b" class="os-settings-link">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="5" width="14" height="12" rx="2.5" fill="#3B82F6"/>
+                        <circle cx="8" cy="9" r="1.5" fill="white"/>
+                        <path d="M5.5 14L8.5 11L10.5 13L13 10L15 14H5.5Z" fill="white"/>
+                        <circle cx="18" cy="18" r="5" fill="#DC2626"/>
+                        <text x="18" y="19.7" text-anchor="middle" font-size="5" font-family="Arial, sans-serif" font-weight="700" fill="white">18</text>
+                    </svg>
+                </div>
+                <span>Fotos+</span>
+            </div>
+            <span class="material-symbols-rounded os-settings-arrow">play_arrow</span>
+        </a>
+    </li>
+
+</ul>
 
             <div class="os-settings-title">Comunicación y soporte</div>
-            <ul class="os-settings-list">
-                <li class="os-settings-item">
-                    <a onclick="customTabs.open('ac24://open3871610-1umwbq/c', 'Chat en vivo')" class="os-settings-link">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
-                                <span class="material-symbols-rounded" style="color: #3b82f6; font-size: 18px;">chat_bubble</span>
-                            </div>
-                            <span>Chat</span>
-                        </div>
-                        <span class="material-symbols-rounded os-settings-arrow">chevron_right</span>
-                    </a>
-                </li>
-                <li class="os-settings-item">
-                    <a onclick="customTabs.open('http://action_offices', 'Centro de Ayuda')" class="os-settings-link">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4C7.58 4 4 7.58 4 12V15C4 16.1 4.9 17 6 17H8V11H6V12C6 8.69 8.69 6 12 6C15.31 6 18 8.69 18 12V17H16C16 18.1 15.1 19 14 19H11V21H14C16.21 21 18 19.21 18 17C19.1 17 20 16.1 20 15V12C20 7.58 16.42 4 12 4Z" fill="#3B82F6"/></svg>
-                            </div>
-                            <span>Soporte</span>
-                        </div>
-                        <span class="material-symbols-rounded os-settings-arrow">chevron_right</span>
-                    </a>
-                </li>                
-            </ul>
+<ul class="os-settings-list">
+
+    <li class="os-settings-item">
+        <a href="ac24://open3871610-1umwbq/a" class="os-settings-link">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
+                    <span class="material-symbols-rounded" style="color: #3b82f6; font-size: 18px;">chat_bubble</span>
+                </div>
+                <span>Chat</span>
+            </div>
+            <span class="material-symbols-rounded os-settings-arrow">chevron_right</span>
+        </a>
+    </li>
+
+    <li class="os-settings-item">
+        <a href="http://action_offices" class="os-settings-link">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 4C7.58 4 4 7.58 4 12V15C4 16.1 4.9 17 6 17H8V11H6V12C6 8.69 8.69 6 12 6C15.31 6 18 8.69 18 12V17H16C16 18.1 15.1 19 14 19H11V21H14C16.21 21 18 19.21 18 17C19.1 17 20 16.1 20 15V12C20 7.58 16.42 4 12 4Z" fill="#3B82F6"/>
+                    </svg>
+                </div>
+                <span>Soporte</span>
+            </div>
+            <span class="material-symbols-rounded os-settings-arrow">chevron_right</span>
+        </a>
+    </li>
+</ul>
         `;
     }
 };
