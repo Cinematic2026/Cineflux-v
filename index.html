@@ -599,7 +599,7 @@
             <button onclick="app.closePlayer()" class="text-white opacity-80 hover:opacity-100 transition">
                 <span class="material-symbols-rounded text-4xl shadow-black drop-shadow-md">expand_more</span>
             </button>
-            <div class="bg-red-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg animate-pulse">CineFluxOS</div>
+            <div class="bg-red-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg animate-pulse">NOVA-PLAYER</div>
         </div>
         
         <div class="viewport-container">
@@ -653,12 +653,35 @@ let currentMovieData = null;
 const ADMIN_EMAIL = 'xplaymovies2024@gmail.com'; 
 
 const CATALOGO = [    
-    { id: 785976, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNzkwdm00L3BsYXlsaXN0Lm0zdTg_a2V5PVBPeDQxa3J2NU9SQlBvTlhEYnpRdXdzYl9uZmRoMmc0d3BHSnBKUGIydk5YSGNUWXZrMi1pUSZ1PTAmYj0wfCB8", categoria: "ESPECIAL DE FUTBOL" },
-    
-    { id: 283317, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNzkwemtlL3BsYXlsaXN0Lm0zdTg_a2V5PWhUX2NMZkxkVU9ZY1Y3WVNZTUhaOGo3VjFpT3RBb3NJcVdSTC1RRktmaUFWSXp4SDQtcG1HUSZ1PTAmYj0wfCB8", categoria: "ESPECIAL DE FUTBOL" },
-    
+    { id: 536841, link: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video%2Fmp4&link=https%3A%2F%2Frumble.com%2Fhls-vod%2F794jwe%2Fplaylist.m3u8", categoria: "ESPECIAL DE FUTBOL" },    
+    { id: 785976, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNzkwdm00L3BsYXlsaXN0Lm0zdTg_a2V5PVBPeDQxa3J2NU9SQlBvTlhEYnpRdXdzYl9uZmRoMmc0d3BHSnBKUGIydk5YSGNUWXZrMi1pUSZ1PTAmYj0wfCB8", categoria: "ESPECIAL DE FUTBOL" },    
+    { id: 283317, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNzkwemtlL3BsYXlsaXN0Lm0zdTg_a2V5PWhUX2NMZkxkVU9ZY1Y3WVNZTUhaOGo3VjFpT3RBb3NJcVdSTC1RRktmaUFWSXp4SDQtcG1HUSZ1PTAmYj0wfCB8", categoria: "ESPECIAL DE FUTBOL" },    
     { id: 361931, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNzkwdzZ3L3BsYXlsaXN0Lm0zdTg_a2V5PTlzTV90N05ka0VPaDJUaFJHQTktM1hNN2Rvcnlra1UzX3gySlh0LXJLNmtoNlZyNXZ5MXM0ZyZ1PTAmYj0wfCB8", categoria: "ESPECIAL DE FUTBOL" },
     
+    
+    <!-- Estreno -->
+    
+   
+    { id: 1083381, link: "https://unlimplay.com/play/embed/movie/1083381", categoria: "Estreno" },
+    
+    { id: 1127384, link: "https://unlimplay.com/play/embed/movie/1127384", categoria: "Estreno" },
+    
+    { id: 687163, link: "https://unlimplay.com/play/embed/movie/687163", categoria: "Estreno" },
+    
+    { id: 454639, link: "https://unlimplay.com/play/embed/movie/454639", categoria: "Estreno" },
+    
+    { id: 1339713, link: "https://unlimplay.com/play/embed/movie/1339713", categoria: "Estreno" },
+    
+    { id: 614945, link: "https://unlimplay.com/play.php/embed/movie/614945", categoria: "Estreno" },
+    
+    { id: 936075, link: "https://unlimplay.com/play/embed/movie/936075", categoria: "Estreno" },
+    
+    { id: 1477317, link: "https://unlimplay.com/play/embed/movie/1477317", categoria: "Estreno" },
+    
+    { id: 1084244, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNzlianRxL3BsYXlsaXN0Lm0zdTh8IHxodHRwczovL2ltYWdlLnRtZGIub3JnL3QvcC9vcmlnaW5hbC9nbkF3Y0xUWjBvb2VJYzZEZElyd09aMzgzT1IuanBn", categoria: "Estreno" },
+    
+    { id: 1358005, link: "https://rumble.com/hls-vod/78qjt8/playlist.m3u8", categoria: "Estreno" },
+    { id: 1275779, link: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video%2Fmp4&link=https%3A%2F%2Frumble.com%2Fhls-vod%2F794k7a%2Fplaylist.m3u8", categoria: "Estreno" },
     { id: 1304313, link: "https://cuevana.gs/player.php?t=3pnQEi7RU4qzI8fxnZ6q3OWb4DF3O-NM7gUCwnBteHtKo9UL1SydbAFff4nzr3hBWv9aMGe-br4yxTwjR4SCpA&amp;server=vimeos", categoria: "Estreno" },
     { id: 1306368, link: "https://cuevana.gs/player.php?t=ZDLQ_lHf-j0BVsHpotS-MRwrrP08SiSS5axXsNA9N8HAwlkp94kekuyow2haXPfkwy393ub1sPMp_SYZXUB-KA&server=goodstream", categoria: "Estreno" },
     { id: 1318447, link: "https://allcalidad.re/wp-content/uploads", categoria: "Estreno" },
@@ -668,9 +691,13 @@ const CATALOGO = [
     { id: 1242898, link: "https://vimeos.net/embed-gifb0mvp14aw.html", categoria: "Estreno" },
     { id: 533535, link: "https://vimeos.net/embed-gifb0mvp14aw.html", categoria: "Estreno" },
     { id: 1084242, link: "https://vimeos.net/embed-mjskmrhlb91i.html", categoria: "Estreno" },
+        
     
+   <!-- Romance -->
+        
     
-    
+    { id: 1252309, link: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video%2Fmp4&link=https%3A%2F%2F1a-1791.com%2Fvideo%2Ffww1%2Fde%2Fs8%2F2%2Fw%2FA%2Fy%2Fx%2FwAyxy.caa.mp4", categoria: "Romance" },
+    { id: 950396, link: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video%2Fmp4&link=https%3A%2F%2F1a-1791.com%2Fvideo%2Ffww1%2F10%2Fs8%2F2%2FM%2Fs%2FI%2Fv%2FMsIvy.caa.mp4", categoria: "Romance" },
     { id: 4348, link: "https://vimeos.net/embed-lzmh38ojay14.html", categoria: "Romance" },
     { id: 555790, link: "https://vimeos.net/embed-hrmwtn1uwffv.html", categoria: "Romance" },
     { id: 22971, link: "https://vimeos.net/embed-uvc2v3r7zjwk.html", categoria: "Romance" },
@@ -683,6 +710,7 @@ const CATALOGO = [
     { id: 597, link: "https://vimeos.net/embed-gkydkzkvctxk.html", categoria: "Romance" },
     
     
+    <!-- Acción -->
    
       
     { id: 361743, link: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video%2Fmp4&link=https%3A%2F%2F1a-1791.com%2Fvideo%2Fs8%2F2%2FZ%2FN%2Fj%2Fc%2FZNjcu.caa.mp4", categoria: "Acción" },
@@ -696,7 +724,9 @@ const CATALOGO = [
     { id: 1556834, link: "https://vimeos.net/embed-4pahvxfpu00m.html", categoria: "Acción" },
     { id: 1635, link: "https://vimeos.net/embed-smljuuvt3j13.html", categoria: "Acción" },
     
-    
+  
+  
+  <!-- Bélico -->  
     
     { id: 300671, link: "https://vimeos.net/embed-xfqgn63o3nsu.html", categoria: "Bélico" },
     { id: 190859, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNnFuYzRmL3BsYXlsaXN0Lm0zdTh8IHxodHRwczovL2ltYWdlLnRtZGIub3JnL3QvcC9vcmlnaW5hbC9jbFFwZjJQODVZSWVweUVLYkxDVXR6WGF3bmYuanBn", categoria: "Bélico" },
@@ -709,7 +739,9 @@ const CATALOGO = [
     { id: 324786, link: "https://vimeos.net/embed-5p9ilozea2ln.html", categoria: "Bélico" },
     { id: 530915, link: "https://vimeos.net/embed-ymgopw288nx9.html", categoria: "Bélico" },
     
-    
+   
+   <!-- Comedia --> 
+   
     
     { id: 11852, link: "https://cnd-player-teleplus.blogspot.com/?player=plyr&provider=rand&format=video/mp4&link=https://1a-1791.com/video/fwe2/7e/s8/2/E/r/u/O/EruOx.gaa.mp4&m=1", categoria: "Comedia" },
     { id: 10022, link: "https://cnd-player-teleplus.blogspot.com/?player=jwpl&provider=rand&format=video%2Fmp4&link=https%3A%2F%2F1a-1791.com%2Fvideo%2Ffww1%2Fc7%2Fs8%2F2%2Fm%2FS%2FD%2Fu%2FmSDuy.gaa.mp4", categoria: "Comedia" },
@@ -723,8 +755,17 @@ const CATALOGO = [
     { id: 771, link: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video/mp4&link=https://1a-1791.com/video/s8/2/S/t/F/L/StFLv.caa.mp4&m=1", categoria: "Comedia" },
     { id: 9904, link: "https://vimeos.net/embed-4n0th103mtkh.html", categoria: "Comedia" },
     
+   
+   <!-- Infantil --> 
+   
     
+    { id: 260514, link: "https://unlimplay.com/play/embed/movie/260514", categoria: "Infantil" },
     
+    { id: 49013, link: "https://unlimplay.com/play/embed/movie/49013", categoria: "Infantil" },
+    
+    { id: 920, link: "https://unlimplay.com/play/embed/movie/920", categoria: "Infantil" },
+    { id: 354912, link: "https://unlimplay.com/play/embed/movie/354912", categoria: "Infantil" },
+    { id: 10681, link: "https://unlimplay.com/play/embed/movie/10681", categoria: "Infantil" },
     { id: 159824, link: "https://cnd-player-teleplus.blogspot.com/?player=jwpl&provider=rand&format=video%2Fmp4&link=https%3A%2F%2F1a-1791.com%2Fvideo%2Ffwe2%2F1e%2Fs8%2F2%2Ff%2FH%2Fy%2Fw%2FfHyww.caa.mp4", categoria: "Infantil" },
     { id: 315162, link: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video%2Fmp4&link=https%3A%2F%2F1a-1791.com%2Fvideo%2Ffwe1%2F98%2Fs8%2F2%2FN%2Fz%2Fx%2Fd%2FNzxdw.caa.mp4", categoria: "Infantil" },
     { id: 49519, link: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video%2Fmp4&link=https%3A%2F%2F1a-1791.com%2Fvideo%2Ffwe1%2F23%2Fs8%2F2%2Fh%2F_%2FD%2FJ%2Fh_DJx.caa.mp4", categoria: "Infantil" },
@@ -737,7 +778,10 @@ const CATALOGO = [
     { id: 1226863, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNzd0NDZjL3BsYXlsaXN0Lm0zdTh8IHw", categoria: "Infantil" },
     
            
+    <!-- Terror -->
     
+    
+    { id: 1224993, link: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video%2Fmp4&link=https%3A%2F%2Frumble.com%2Fhls-vod%2F794k9q%2Fplaylist.m3u8", categoria: "Terror" },
     { id: 978796, link: "https://cnd-player-teleplus.blogspot.com/?player=fluidplayer&provider=rand&format=video/mp4&link=https://1a-1791.com/video/fwe1/63/s8/2/c/A/L/o/cALoy.gaa.mp4&m=1", categoria: "Terror" },
     { id: 1114513, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNnBscmVmL3BsYXlsaXN0Lm0zdTh8IHw", categoria: "Terror" },
     { id: 9373, link: "https://starkgoplay.blogspot.com/p/embed.html#aHR0cHM6Ly9ydW1ibGUuY29tL2hscy12b2QvNzd4OXZrL3BsYXlsaXN0Lm0zdTh8IHw", categoria: "Terror" },
@@ -1136,7 +1180,7 @@ const guardian = {
         const toast = document.createElement('div');
         toast.id = 'guardian-toast';
         toast.className = 'guardian-toast success';
-        toast.innerHTML = `<span class="material-symbols-rounded g-icon" id="g-icon">security</span><div><div style="color:white; font-size:13px; font-weight:900; margin-bottom:2px">CINEFLUX GUARDIAN</div><div id="g-text" style="color:#cbd5e1; font-size:11px">Escudo Activo</div></div>`;
+        toast.innerHTML = `<span class="material-symbols-rounded g-icon" id="g-icon">security</span><div><div style="color:white; font-size:13px; font-weight:900; margin-bottom:2px">NOVA GUARDIAN</div><div id="g-text" style="color:#cbd5e1; font-size:11px">Escudo Activo</div></div>`;
         document.body.appendChild(toast);
     },
     
@@ -1716,11 +1760,11 @@ const ui = {
                 </li>
             </ul>
             
-            <div class="os-settings-title">MAS ENTRETENIMIENTO</div>
+            <div class="os-settings-title">EXCLUSIVO PARA ADULTOS</div>
 <ul class="os-settings-list">
 
     <li class="os-settings-item">
-        <a href="go:videos" class="os-settings-link">
+        <a href="https://cinematic2026.github.io/Cineflux/" class="os-settings-link">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -1728,56 +1772,65 @@ const ui = {
                         <text x="12" y="14.5" text-anchor="middle" font-size="7" font-weight="700" fill="white">18</text>
                     </svg>
                 </div>
-                <span>Videos+</span>
+                <span>VIDEOS Y FOTOS</span>
             </div>
             <span class="material-symbols-rounded os-settings-arrow">play_arrow</span>
         </a>
     </li>
-
-    <li class="os-settings-item">
-        <a href="go:fotos" class="os-settings-link">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="3" y="5" width="14" height="12" rx="2.5" fill="#3B82F6"/>
-                        <circle cx="8" cy="9" r="1.5" fill="white"/>
-                        <path d="M5.5 14L8.5 11L10.5 13L13 10L15 14H5.5Z" fill="white"/>
-                        <circle cx="18" cy="18" r="5" fill="#DC2626"/>
-                        <text x="18" y="19.7" text-anchor="middle" font-size="5" font-family="Arial, sans-serif" font-weight="700" fill="white">18</text>
-                    </svg>
-                </div>
-                <span>Fotos+</span>
-            </div>
-            <span class="material-symbols-rounded os-settings-arrow">play_arrow</span>
-        </a>
-    </li>
-
+    
 </ul>
 
-            <div class="os-settings-title">Comunicación y soporte</div>
+            <div class="os-settings-title">JUEGOS Y EMULADOR</div>
 <ul class="os-settings-list">
 
     <li class="os-settings-item">
-        <a href="go:chat" class="os-settings-link">
+        <a href="https://cinematic2026.github.io/Novagaming/" class="os-settings-link">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
-                    <span class="material-symbols-rounded" style="color: #3b82f6; font-size: 18px;">chat_bubble</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M7 9H17C19.2 9 21 10.8 21 13C21 15.2 19.2 17 17 17C15.9 17 15.1 16.5 14.3 15.7L13.5 14.9C13.2 14.6 12.8 14.5 12.4 14.5H11.6C11.2 14.5 10.8 14.6 10.5 14.9L9.7 15.7C8.9 16.5 8.1 17 7 17C4.8 17 3 15.2 3 13C3 10.8 4.8 9 7 9Z"
+          fill="#3b82f6"/>
+    <path d="M8 11.5V14.5M6.5 13H9.5"
+          stroke="white"
+          stroke-width="1.8"
+          stroke-linecap="round"/>
+    <circle cx="16.5" cy="12" r="1" fill="white"/>
+    <circle cx="18" cy="14" r="1" fill="white"/>
+    <circle cx="15" cy="14" r="1" fill="white"/>
+</svg>
                 </div>
-                <span>Chat</span>
+                <span>JUEGOS DE PLAYSTATION2</span>
             </div>
             <span class="material-symbols-rounded os-settings-arrow">chevron_right</span>
         </a>
     </li>
 
     <li class="os-settings-item">
-        <a href="http://action_offices" class="os-settings-link">
+        <a href="https://download2390.mediafire.com/bfwty4vjthjgtpzGZvZ7ru7kAr1CJxrcCbwyZV9E_pLH4OVGZiyFDNhDbFOJnyQmXfw-G2Esgad5C-vnm9HM1Kcr0CaUCP9zduaTHAZv4qnF1uByinF6yF7vXWi0CUTjtEATkeAu8viXYYSyY4SKZNPVqgpdQmk9k92k7W0Dywv1Ns0c/ih56vujzd6x7sg3/AetherSX2.net-BIOS-usa.bin" class="os-settings-link">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 4C7.58 4 4 7.58 4 12V15C4 16.1 4.9 17 6 17H8V11H6V12C6 8.69 8.69 6 12 6C15.31 6 18 8.69 18 12V17H16C16 18.1 15.1 19 14 19H11V21H14C16.21 21 18 19.21 18 17C19.1 17 20 16.1 20 15V12C20 7.58 16.42 4 12 4Z" fill="#3B82F6"/>
-                    </svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <!-- Consola -->
+    <rect x="4" y="4" width="10" height="8" rx="2" fill="#3b82f6"/>
+    <rect x="6" y="6" width="6" height="1.5" fill="#ffffff"/>
+    <rect x="6" y="9" width="4" height="1" fill="#ffffff"/>
+
+    <!-- Control -->
+    <path d="M9 14H17C19 14 20.5 15.5 20.5 17.5C20.5 19.5 19 21 17.2 21C16.2 21 15.5 20.6 14.8 19.9L14.2 19.3C14 19.1 13.7 19 13.4 19H12.6C12.3 19 12 19.1 11.8 19.3L11.2 19.9C10.5 20.6 9.8 21 8.8 21C7 21 5.5 19.5 5.5 17.5C5.5 15.5 7 14 9 14Z"
+          fill="#3b82f6"/>
+
+    <!-- Cruz -->
+    <path d="M9 16.5V18.5M8 17.5H10"
+          stroke="#ffffff"
+          stroke-width="1.4"
+          stroke-linecap="round"/>
+
+    <!-- Botones -->
+    <circle cx="16" cy="17" r="0.9" fill="#ffffff"/>
+    <circle cx="17.8" cy="18.5" r="0.9" fill="#ffffff"/>
+</svg>
                 </div>
-                <span>Soporte</span>
+                <span>Descarga imagen BIOS</span>
             </div>
             <span class="material-symbols-rounded os-settings-arrow">chevron_right</span>
         </a>
