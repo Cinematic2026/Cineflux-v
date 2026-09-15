@@ -1450,7 +1450,10 @@
             const modal = document.getElementById('trailerModal');
             const iframe = document.getElementById('trailerIframe');
             modal.classList.remove('active');
-            iframe.src = '';
+            
+            // FIX APLICADO: Usar about:blank destruye instantáneamente la reproducción de fondo.
+            if (iframe) iframe.src = 'about:blank';
+            
             if (triggerHistoryBack && history.state && history.state.modal === 'trailer') window.history.back();
         }
 
@@ -1534,7 +1537,11 @@
 
         function closePlayer(triggerHistoryBack = true) {
             document.getElementById('playerModal').classList.remove('active');
-            document.getElementById('videoIframe').src = '';
+            const iframe = document.getElementById('videoIframe');
+            
+            // FIX APLICADO: Asegurarnos de que el reproductor de streaming tampoco siga sonando
+            if (iframe) iframe.src = 'about:blank';
+            
             if (triggerHistoryBack && history.state && history.state.modal === 'player') window.history.back();
         }
 
@@ -1669,7 +1676,7 @@
                 if (navigator.share) await navigator.share(shareData);
                 else { await navigator.clipboard.writeText(window.location.href); alert('¡Enlace copiado!'); }
             } catch (err) { console.log('Error al compartir:', err); }
-        }
+        }            
     </script>
 </body>
 </html>
