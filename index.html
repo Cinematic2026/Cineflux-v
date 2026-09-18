@@ -387,7 +387,7 @@
                     <span class="meta-rating"><iconify-icon icon="solar:star-bold"></iconify-icon> <span id="heroRating">0.0</span></span>
                     <span id="heroYear">----</span>
                 </div>
-                <p class="hero-description" id="heroOverview">Conectando con TMDB...</p>
+                <p class="hero-description" id="heroOverview">Conectando con el servidor...</p>
                 <div class="btn-group">
                     <button class="btn btn-main" id="heroDetailsBtn"><iconify-icon icon="solar:info-circle-bold" style="font-size: 1.2rem;"></iconify-icon> Ver Información</button>
                     <button class="btn btn-trailer" id="heroTrailerBtn"><iconify-icon icon="solar:videocamera-bold" style="font-size: 1.2rem;"></iconify-icon> Ver Tráiler</button>
@@ -608,6 +608,20 @@
         const TMDB_HD_IMG_URL = "https://image.tmdb.org/t/p/original";
 
         const MY_CATALOG_INPUT = [
+             {
+                id: 1011985, // 
+                servers: [
+                    "https://vimeos.net/embed-psdvmd18aq2a.html",
+                    "https://unlimplay.com/f/embed/movie/1011985"
+                ]
+            },
+             {
+                id: 953, // 
+                servers: [
+                    "https://vimeos.net/embed-aam2frniwqez.html",
+                    "https://unlimplay.com/f/embed/movie/953"
+                ]
+            },
              {
                 id: 315162, // 
                 servers: [                  
@@ -1317,12 +1331,47 @@
             }
         ];
 
-        /* --- ESTADO GLOBAL --- */
+        /* --- INYECCIÓN DINÁMICA DE CSS PARA AVISO EXTERNO --- */
+(function injectExternalStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .nova-external-warning {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            background: rgba(229, 9, 20, 0.08);
+            border: 1px solid rgba(229, 9, 20, 0.3);
+            border-left: 4px solid var(--danger, #e50914);
+            padding: 10px 14px;
+            margin: 14px 0;
+            border-radius: 8px;
+            backdrop-filter: blur(4px);
+        }
+        .nova-external-warning iconify-icon {
+            font-size: 1.2rem;
+            color: var(--danger, #e50914);
+            flex-shrink: 0;
+        }
+        .nova-external-warning p {
+            color: #d1d1d1;
+            font-size: 0.8rem;
+            margin: 0;
+            line-height: 1.35;
+        }
+    `;
+    document.head.appendChild(style);
+})();
+
+/* --- ESTADO GLOBAL --- */
         let FULL_MOVIES_DATA = [];
+        let EXTERNAL_SEARCH_RESULTS = []; 
         let activeServers = [];
         let currentServerIndex = 0;
         let currentLoadedMovie = null;
         let favorites = JSON.parse(localStorage.getItem('nova_favs')) || [];
+
+        // Constantes Servidor Externo Unlimplay
+        const UNLIMPLAY_EMBED_BASE = "https://unlimplay.com/f/embed/movie/";
 
         // Configuración Sandbox Persistente
         let sandboxConfig = JSON.parse(localStorage.getItem('nova_sandbox')) || {
@@ -1341,12 +1390,11 @@
             { id: 'allow-top-navigation', name: 'Permitir Redirección', desc: 'Permite que el iframe cambie la página actual de NOVA.', icon: 'solar:forward-bold' }
         ];
 
-        /* =======================================================
+/* =======================================================
    INTEGRACIÓN CON LA API DE TMDB
    ======================================================= */
 async function fetchTMDBMovieData(item) {
     try {
-        // append_to_response=credits,images,videos
         const url = `${TMDB_BASE_URL}/movie/${item.id}?api_key=${TMDB_API_KEY}&language=es-MX&append_to_response=credits,images,videos&include_image_language=es,null`;
         const res = await fetch(url);
         const data = await res.json();
@@ -1356,60 +1404,70 @@ async function fetchTMDBMovieData(item) {
             return null;
         }
 
-        const formatMoney = (amount) => amount ? '$' + amount.toLocaleString('en-US') : 'N/A';
-        
-        // 1. Categóia Principal
-        const mainCategory = (data.genres && data.genres.length > 0) ? data.genres[0].name : "Sin Categoría";
-
-        // 2. Extraer Director
-        let directorName = 'Desconocido';
-        if (data.credits && data.credits.crew) {
-            const dirObj = data.credits.crew.find(c => c.job === 'Director');
-            if (dirObj) directorName = dirObj.name;
-        }
-
-        // 3. Extraer Tráiler en YouTube
-        let trailerKey = null;
-        if (data.videos && data.videos.results) {
-            const trailerObj = data.videos.results.find(v => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser')) || data.videos.results[0];
-            if (trailerObj) trailerKey = trailerObj.key;
-        }
-
-        // 4. Extraer Casas Productoras (Compañías)
-        const companies = (data.production_companies || []).map(c => ({
-            name: c.name,
-            logo: c.logo_path ? `${TMDB_IMG_URL}${c.logo_path}` : null
-        }));
-
-        return {
-            id: data.id,
-            title: data.title || 'Título Desconocido',
-            tagline: data.tagline ? `"${data.tagline}"` : '',
-            category: mainCategory, 
-            director: directorName,
-            trailerKey: trailerKey,
-            year: data.release_date ? data.release_date.split('-')[0] : 'N/A',
-            runtime: data.runtime ? `${Math.floor(data.runtime/60)}h ${data.runtime%60}m` : 'N/A',
-            rating: data.vote_average ? data.vote_average.toFixed(1) : '0.0',
-            overview: data.overview || 'Sin descripción disponible.',
-            status: data.status || 'Estrenada',
-            budget: formatMoney(data.budget),
-            revenue: formatMoney(data.revenue),
-            poster: data.poster_path ? `${TMDB_IMG_URL}${data.poster_path}` : 'https://via.placeholder.com/500x750?text=Sin+Poster',
-            backdrop: data.backdrop_path ? `${TMDB_HD_IMG_URL}${data.backdrop_path}` : 'https://via.placeholder.com/1200x800?text=Fondo',
-            servers: item.servers,
-            companies: companies,
-            cast: (data.credits && data.credits.cast) ? data.credits.cast.slice(0, 8).map(c => ({
-                name: c.name,
-                character: c.character,
-                img: c.profile_path ? `${TMDB_IMG_URL}${c.profile_path}` : 'https://via.placeholder.com/150'
-            })) : [],
-            gallery: (data.images && data.images.backdrops) ? data.images.backdrops.slice(0, 6).map(b => `${TMDB_IMG_URL}${b.file_path}`) : []
-        };
+        return parseTMDBToNovaFormat(data, item.servers);
     } catch (err) {
         console.error(`Error crítico procesando ID ${item.id}:`, err);
         return null;
     }
+}
+
+/* --- PARSER CENTRALIZADO PARA TMDB --- */
+function parseTMDBToNovaFormat(data, customServers = null) {
+    const formatMoney = (amount) => amount ? '$' + amount.toLocaleString('en-US') : 'N/A';
+    
+    // 1. Categoría Principal
+    const mainCategory = (data.genres && data.genres.length > 0) ? data.genres[0].name : "Sin Categoría";
+
+    // 2. Extraer Director
+    let directorName = 'Desconocido';
+    if (data.credits && data.credits.crew) {
+        const dirObj = data.credits.crew.find(c => c.job === 'Director');
+        if (dirObj) directorName = dirObj.name;
+    }
+
+    // 3. Extraer Tráiler en YouTube
+    let trailerKey = null;
+    if (data.videos && data.videos.results) {
+        const trailerObj = data.videos.results.find(v => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser')) || data.videos.results[0];
+        if (trailerObj) trailerKey = trailerObj.key;
+    }
+
+    // 4. Extraer Casas Productoras (Compañías)
+    const companies = (data.production_companies || []).map(c => ({
+        name: c.name,
+        logo: c.logo_path ? `${TMDB_IMG_URL}${c.logo_path}` : null
+    }));
+
+    // Determinar los servidores
+    const isExternal = !customServers;
+    const servers = customServers || [`${UNLIMPLAY_EMBED_BASE}${data.id}`];
+
+    return {
+        id: data.id,
+        title: data.title || 'Título Desconocido',
+        tagline: data.tagline ? `"${data.tagline}"` : '',
+        category: mainCategory, 
+        director: directorName,
+        trailerKey: trailerKey,
+        year: data.release_date ? data.release_date.split('-')[0] : 'N/A',
+        runtime: data.runtime ? `${Math.floor(data.runtime/60)}h ${data.runtime%60}m` : 'N/A',
+        rating: data.vote_average ? data.vote_average.toFixed(1) : '0.0',
+        overview: data.overview || 'Sin descripción disponible.',
+        status: data.status || 'Estrenada',
+        budget: formatMoney(data.budget),
+        revenue: formatMoney(data.revenue),
+        poster: data.poster_path ? `${TMDB_IMG_URL}${data.poster_path}` : 'https://via.placeholder.com/500x750?text=Sin+Poster',
+        backdrop: data.backdrop_path ? `${TMDB_HD_IMG_URL}${data.backdrop_path}` : 'https://via.placeholder.com/1200x800?text=Fondo',
+        servers: servers,
+        isExternal: isExternal,
+        companies: companies,
+        cast: (data.credits && data.credits.cast) ? data.credits.cast.slice(0, 8).map(c => ({
+            name: c.name,
+            character: c.character,
+            img: c.profile_path ? `${TMDB_IMG_URL}${c.profile_path}` : 'https://via.placeholder.com/150'
+        })) : [],
+        gallery: (data.images && data.images.backdrops) ? data.images.backdrops.slice(0, 6).map(b => `${TMDB_IMG_URL}${b.file_path}`) : []
+    };
 }
 
 async function initApp() {
@@ -1422,7 +1480,7 @@ async function initApp() {
     FULL_MOVIES_DATA = results.filter(movie => movie !== null);
 
     if (FULL_MOVIES_DATA.length === 0) {
-        catalogContainer.innerHTML = '<div class="loading-spinner" style="grid-column: 1/-1; color: var(--danger);">Error conectando con TMDB. Verifica tu API Key.</div>';
+        catalogContainer.innerHTML = '<div class="loading-spinner" style="grid-column: 1/-1; color: var(--danger);">Error al conectar al servidor. intentalo de nuevo mas tarde...</div>';
         return;
     }
 
@@ -1490,8 +1548,7 @@ window.addEventListener('popstate', (event) => {
     renderView(viewTarget, false);
 
     if (event.state && event.state.movieId) {
-        const movie = FULL_MOVIES_DATA.find(m => m.id === event.state.movieId);
-        if (movie) renderMovieDetailsUI(movie);
+        openMovieDetail(event.state.movieId);
     }
 });
 
@@ -1555,8 +1612,26 @@ function buildCard(movie) {
 }
 
 /* --- VISTA DE DETALLES MEJORADA --- */
-function openMovieDetail(movieId) {
-    const movie = FULL_MOVIES_DATA.find(m => m.id === movieId);
+async function openMovieDetail(movieId) {
+    let movie = FULL_MOVIES_DATA.find(m => m.id === movieId) || EXTERNAL_SEARCH_RESULTS.find(m => m.id === movieId);
+
+    // Si es una película externa que aún no tiene su información completa (créditos, galería, etc.)
+    if (!movie || !movie.cast || movie.cast.length === 0) {
+        const url = `${TMDB_BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&language=es-MX&append_to_response=credits,images,videos&include_image_language=es,null`;
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            if (res.ok && data.id) {
+                movie = parseTMDBToNovaFormat(data);
+                // Guardar en caché temporal para no pedir de nuevo la API
+                const index = EXTERNAL_SEARCH_RESULTS.findIndex(m => m.id === movieId);
+                if (index !== -1) EXTERNAL_SEARCH_RESULTS[index] = movie;
+            }
+        } catch (e) {
+            console.error("Error al obtener detalles completos de TMDB:", e);
+        }
+    }
+
     if (!movie) return;
     currentLoadedMovie = movie;
     renderMovieDetailsUI(movie);
@@ -1580,6 +1655,24 @@ function renderMovieDetailsUI(movie) {
     document.getElementById('metaVote').innerText = `${movie.rating} / 10`;
     document.getElementById('metaBudget').innerText = movie.budget;
     document.getElementById('metaRevenue').innerText = movie.revenue;
+
+    // --- AVISO DE SERVIDOR EXTERNO ---
+    let warningBox = document.getElementById('novaExternalWarningBox');
+    if (!warningBox) {
+        warningBox = document.createElement('div');
+        warningBox.id = 'novaExternalWarningBox';
+        warningBox.className = 'nova-external-warning';
+        warningBox.innerHTML = `
+            <iconify-icon icon="solar:info-square-bold"></iconify-icon>
+            <p>Esta película no está disponible en nuestro servidor principal, es posible que no se pueda reproducir o experimente fallas.</p>
+        `;
+        const overviewEl = document.getElementById('detailsOverview');
+        if (overviewEl && overviewEl.parentNode) {
+            overviewEl.parentNode.insertBefore(warningBox, overviewEl.nextSibling);
+        }
+    }
+
+    warningBox.style.display = movie.isExternal ? 'flex' : 'none';
 
     // Configurar botón de tráiler en detalles
     const detailsTrailerBtn = document.getElementById('detailsTrailerBtn');
@@ -1675,7 +1768,6 @@ function closeTrailerModal(triggerHistoryBack = true) {
     const modal = document.getElementById('trailerModal');
     modal.classList.remove('active');
     
-    // FIX APLICADO PARA EL TRÁILER: Clonar elemento para limpiar el historial y detener el audio
     const iframe = document.getElementById('trailerIframe');
     if (iframe) {
         const newIframe = iframe.cloneNode(true);
@@ -1698,7 +1790,7 @@ function filterByGenre(categoryName) {
 }
 
 /* =======================================================
-   BUSCADOR AVANZADO (TÍTULO, CATEGORÍA, AÑO)
+   BUSCADOR AVANZADO (TÍTULO LOCAL / TMDB, CATEGORÍA, AÑO)
    ======================================================= */
 function populateSearchFilters() {
     const catSelect = document.getElementById('searchCategory');
@@ -1720,25 +1812,75 @@ function populateSearchFilters() {
     });
 }
 
-function runAdvancedSearch() {
+let searchDebounceTimeout = null;
+
+async function runAdvancedSearch() {
     const qTitle = document.getElementById('searchInput').value.toLowerCase().trim();
     const qCat = document.getElementById('searchCategory').value;
     const qYear = document.getElementById('searchYear').value;
     const container = document.getElementById('searchResultsContainer');
 
-    const results = FULL_MOVIES_DATA.filter(m => {
+    // 1. Filtrar primero dentro del catálogo local
+    const localResults = FULL_MOVIES_DATA.filter(m => {
         const matchTitle = m.title.toLowerCase().includes(qTitle);
         const matchCat = qCat === "" || m.category === qCat;
         const matchYear = qYear === "" || m.year === qYear;
         return matchTitle && matchCat && matchYear;
     });
 
-    container.innerHTML = '';
-    if (results.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">No se encontraron películas con estos filtros.</p>';
+    if (localResults.length > 0 || qTitle.length < 3) {
+        container.innerHTML = '';
+        if (localResults.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">No se encontraron películas en tu catálogo.</p>';
+            return;
+        }
+        localResults.forEach(m => container.appendChild(buildCard(m)));
         return;
     }
-    results.forEach(m => container.appendChild(buildCard(m)));
+
+    // 2. Buscar en TMDB
+    container.innerHTML = '<p style="color: var(--accent); grid-column: 1/-1;">Buscando en la base de datos global de TMDB...</p>';
+
+    clearTimeout(searchDebounceTimeout);
+    searchDebounceTimeout = setTimeout(async () => {
+        try {
+            const response = await fetch(
+                `${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(qTitle)}&language=es-MX&page=1`
+            );
+            const data = await response.json();
+
+            if (!data.results || data.results.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">No se encontraron películas dentro ni fuera de la base de datos.</p>';
+                return;
+            }
+
+            EXTERNAL_SEARCH_RESULTS = data.results.map(item => parseTMDBToNovaFormat({
+                ...item,
+                runtime: null,
+                genres: [],
+                credits: { crew: [], cast: [] },
+                images: { backdrops: [] },
+                videos: { results: [] }
+            }));
+
+            const filteredExternal = EXTERNAL_SEARCH_RESULTS.filter(m => {
+                const matchYear = qYear === "" || m.year === qYear;
+                return matchYear;
+            });
+
+            container.innerHTML = '';
+            if (filteredExternal.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">No se encontraron películas con los filtros seleccionados.</p>';
+                return;
+            }
+
+            filteredExternal.forEach(m => container.appendChild(buildCard(m)));
+
+        } catch (err) {
+            console.error("Error buscando en TMDB:", err);
+            container.innerHTML = '<p style="color: var(--danger); grid-column: 1/-1;">Ocurrió un error al consultar el servidor externo.</p>';
+        }
+    }, 400);
 }
 
 /* =======================================================
@@ -1769,7 +1911,6 @@ function switchNextServer() {
 function closePlayer(triggerHistoryBack = true) {
     document.getElementById('playerModal').classList.remove('active');
     
-    // FIX APLICADO PARA EL REPRODUCTOR: Clonar elemento para limpiar el historial y detener el audio
     const iframe = document.getElementById('videoIframe');
     if (iframe) {
         const newIframe = iframe.cloneNode(true);
@@ -1916,4 +2057,4 @@ async function shareMovie() {
 }            
     </script>
 </body>
-</html>
+    </html>
